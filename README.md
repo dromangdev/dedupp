@@ -141,6 +141,17 @@ cargo test
 
 ---
 
+## 🔀 Flujo de Versionado y Desarrollo
+
+El proyecto sigue [SemVer](https://semver.org/lang/es/) y el flujo de ramas de Git Flow:
+
+- **`main`**: Rama de producción exclusiva para versiones estables y etiquetadas (`vX.Y.Z`). No se hacen commits directos sobre `main`.
+- **`develop`**: Rama principal de desarrollo donde se integran las nuevas características y correcciones antes de publicar una versión.
+- **`feature/*` / `fix/*`**: Ramas de trabajo para cambios específicos.
+- **Historial de cambios**: Cada nueva versión debe registrarse detalladamente en [`CHANGELOG.md`](CHANGELOG.md) antes del merge a `main`.
+
+---
+
 ## 📄 Licencia
 
 Distribuido bajo la Licencia **MIT**. Consulta el archivo `LICENSE` para más detalles.
