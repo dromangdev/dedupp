@@ -1,0 +1,20 @@
+[package]
+name = "dj-dedupe-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+rayon.workspace = true
+walkdir.workspace = true
+sha2.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+log.workspace = true
+lofty.workspace = true
+trash.workspace = true
+libc = { workspace = true }
+dj-libraries = { path = "../dj-libraries" }
