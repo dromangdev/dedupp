@@ -6,6 +6,22 @@ Cuenta con una **Interfaz Gráfica de Escritorio (Desktop GUI con Tauri v2)** co
 
 ---
 
+## 📥 Descarga e Instalación Directa (Sin compilar)
+
+No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar el instalador oficial y comenzar a usarlo de inmediato:
+
+| Plataforma | Arquitectura | Instalador Listo para Usar |
+| :--- | :--- | :--- |
+| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Descargar Dedupp v0.1.0 (.dmg)**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.1.0_aarch64.dmg) |
+
+### Cómo instalar en macOS:
+1. Haz clic en el enlace para descargar [**Dedupp_0.1.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.1.0_aarch64.dmg) (o encuéntralo en la carpeta `dist/` del repositorio).
+2. Abre el archivo `.dmg` con doble clic.
+3. Arrastra **Dedupp** a tu carpeta de **Aplicaciones**.
+4. ¡Listo! Ya puedes abrir Dedupp desde Spotlight (`Cmd + Espacio`), Launchpad o tu Dock.
+
+---
+
 ## ✨ Características Principales
 
 1. **Criterio Inteligente Unificado de Calidad de Audio**:
