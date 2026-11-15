@@ -59,11 +59,11 @@ pub fn is_engine_dj_running() -> bool {
     #[cfg(target_os = "windows")]
     {
         if let Ok(output) = std::process::Command::new("tasklist")
-            .args(["/FI", "IMAGENAME eq Engine DJ.exe"])
+            .args(["/NH", "/FO", "CSV"])
             .output()
         {
-            let out_str = String::from_utf8_lossy(&output.stdout);
-            if out_str.contains("Engine DJ.exe") {
+            let out_str = String::from_utf8_lossy(&output.stdout).to_lowercase();
+            if out_str.contains("engine dj.exe") || out_str.contains("enginedj.exe") || out_str.contains("engine.exe") {
                 return true;
             }
         }

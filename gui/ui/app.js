@@ -2432,8 +2432,15 @@ async function initApp() {
   initWindowDragging();
 }
 
-// Soporte de arrastre de ventana nativo en macOS
+// Soporte de arrastre de ventana nativo y detección de plataforma (macOS / Windows)
 function initWindowDragging() {
+  const isWindows = navigator.userAgent.includes("Windows") || (navigator.platform && navigator.platform.includes("Win"));
+  if (isWindows) {
+    document.body.classList.add("platform-windows");
+  } else {
+    document.body.classList.add("platform-mac");
+  }
+
   const topHeader = document.querySelector(".top-header");
   if (!topHeader) return;
 

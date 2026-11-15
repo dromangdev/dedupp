@@ -73,10 +73,10 @@ pub fn is_rekordbox_running() -> bool {
     #[cfg(target_os = "windows")]
     {
         if let Ok(output) = std::process::Command::new("tasklist")
-            .args(["/FI", "IMAGENAME eq rekordbox.exe"])
+            .args(["/NH", "/FO", "CSV"])
             .output()
         {
-            let out_str = String::from_utf8_lossy(&output.stdout);
+            let out_str = String::from_utf8_lossy(&output.stdout).to_lowercase();
             if out_str.contains("rekordbox.exe") {
                 return true;
             }

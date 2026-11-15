@@ -80,6 +80,11 @@ body {
   z-index: 100;
 }
 
+/* En Windows no hay traffic lights a la izquierda, espaciado uniforme */
+.platform-windows .top-header {
+  padding: 0 16px;
+}
+
 .brand {
   display: flex;
   align-items: center;
