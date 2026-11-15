@@ -17,7 +17,6 @@ const invoke = async (cmd, args = {}) => {
 const driveSelect = document.getElementById("drive-select");
 const btnRefreshDrives = document.getElementById("btn-refresh-drives");
 const btnBrowseFolder = document.getElementById("btn-browse-folder");
-const btnResetDrive = document.getElementById("btn-reset-drive");
 const currentPathText = document.getElementById("current-path-text");
 
 const criterionSelect = document.getElementById("criterion-select");
@@ -26,6 +25,7 @@ const protectCuesCheckbox = document.getElementById("protect-cues");
 const btnScan = document.getElementById("btn-scan");
 const scanText = document.getElementById("scan-text");
 const scanIcon = document.getElementById("scan-icon");
+const macSpinner = document.getElementById("mac-spinner");
 
 // Progreso y Logs de Escaneo
 const progressPanel = document.getElementById("progress-panel");
@@ -75,6 +75,7 @@ const settingSoundVolume = document.getElementById("setting-sound-volume");
 const volumeValText = document.getElementById("volume-val-text");
 const btnTestSound = document.getElementById("btn-test-sound");
 const settingProtectCuesDefault = document.getElementById("setting-protect-cues-default");
+const settingLanguageChoice = document.getElementById("setting-language-choice");
 
 // Elementos de Engine DJ
 const btnEngineClean = document.getElementById("btn-engine-clean");
@@ -147,11 +148,576 @@ function getAudioContext() {
   return audioCtx;
 }
 
+// ==========================================================================
+// Sistema de Internacionalización (i18n: es, en, fr)
+// ==========================================================================
+let currentLanguage = "es";
+
+const i18n = {
+  es: {
+    brand_title: "Dedupp",
+    brand_subtitle: "Limpiador de Colecciones DJ",
+    badge_engine_title: "Base de datos Engine OS / Denon (m.db)",
+    badge_serato_title: "Metadatos Serato DJ (_Serato_ y Cues GEOB)",
+    badge_rekordbox_title: "Colección Pioneer / Rekordbox (XML / PIONEER)",
+    btn_engine_clean: "Limpiar Engine DJ",
+    btn_rekordbox_clean: "Cabina Rekordbox",
+    btn_settings: "Ajustes",
+    source_label: "Unidad USB o Carpeta:",
+    drives_searching: "Buscando unidades conectadas...",
+    btn_refresh_drives_title: "Actualizar lista de unidades USB",
+    btn_browse_folder: "Examinar...",
+    path_label: "Ruta activa:",
+    storage_free_of: "libres de",
+    storage_reclaimable: "recuperables",
+    storage_refresh: "Actualizar espacio",
+    tolerance_label: "Tolerancia de Duración:",
+    tolerance_hint: "Margen para temas idénticos",
+    tolerance_sec: "seg",
+    smart_policy_label: "Criterio Automático:",
+    smart_policy_pill: "<span>💎 Calidad</span><span class=\"sep\">›</span><span>🛡️ Cues DJ</span><span class=\"sep\">›</span><span>⏱️ Reciente</span>",
+    btn_scan: "Escanear y Previsualizar",
+    btn_scanning: "Escaneando...",
+    protect_cues_label: "Proteger pistas con <strong>Hot Cues, Loops o Playlists</strong> de DJ",
+    versions_hint: "Diferentes versiones (Radio vs Extended) se conservan.",
+    progress_analyzing: "Analizando archivos de audio...",
+    progress_processed: "archivos procesados",
+    progress_log_toggle: "Registro de actividad",
+    log_title: "Actividad del Sistema",
+    log_clear: "Limpiar",
+    stat_scanned: "Pistas Analizadas",
+    stat_groups: "Grupos Duplicados",
+    stat_redundant: "Archivos a Limpiar",
+    stat_reclaimable: "Espacio Recuperable",
+    results_title: "Resultados del Análisis",
+    btn_export_csv: "Exportar CSV",
+    btn_move_duplicates: "Mover Duplicados...",
+    empty_title: "Selecciona tu unidad USB o carpeta",
+    empty_desc: "Elige tu memoria USB en el desplegable superior y pulsa <strong>Escanear</strong>.<br>Dedupp analizará códecs, bitrates y datos de librerías DJ sin modificar tus archivos.",
+    empty_clean_title: "¡Colección impecable!",
+    empty_clean_desc: "No se encontraron canciones duplicadas en la unidad seleccionada.",
+    status_ready: "Listo",
+    status_scanning: "Escaneando archivos...",
+    status_cleaning: "Moviendo archivos...",
+    status_completed: "Operación completada con éxito.",
+    subfolder_selected: "Subcarpeta seleccionada",
+    // Modal duplicados
+    modal_dup_title: "Gestión de Archivos Duplicados",
+    opt_trash_title: "🗑️ Papelera (Agrupados en una sola carpeta) — Recomendado",
+    opt_trash_desc: "Reúne todas las canciones duplicadas dentro de una única carpeta fechada y la traslada a la Papelera. No ensucia la papelera con cientos de archivos sueltos y permite liberar espacio real al vaciarla.",
+    opt_quarantine_title: "🛡️ Mover a Carpeta de Cuarentena en la unidad",
+    opt_quarantine_desc: "Aísla los temas en .dedupp_quarantine/ con un registro manifest.json. (No libera espacio de disco hasta que borres esa carpeta).",
+    sync_engine_title: "🔄 Sincronizar automáticamente con Engine DJ (Recomendado)",
+    sync_engine_desc: "Re-vincula las playlists al tema conservado de mayor calidad y elimina los temas duplicados de m.db para que nunca aparezcan en rojo.",
+    sync_rekordbox_title: "💿 Sincronizar playlists de Cabina Pioneer / Rekordbox (Recomendado)",
+    sync_rekordbox_desc: "Re-vincula las playlists de export.pdb hacia el tema conservado para que sigan reproduciéndose sin errores \"TRACK NOT FOUND\" en CDJs.",
+    btn_open_trash_finder: "📂 Abrir Papelera en Finder",
+    btn_cancel: "Cancelar",
+    btn_close: "Cerrar",
+    btn_confirm_move: "Confirmar y Trasladar",
+    // Engine DJ Modal
+    engine_modal_title: "Mantenimiento de Engine DJ",
+    engine_modal_subtitle: "Eliminación de pistas rojas y re-vinculación de playlists",
+    engine_alert_title: "Engine DJ está abierto en tu ordenador",
+    engine_alert_desc: "Para proteger la base de datos <code>m.db</code>, <strong>cierra Engine DJ</strong> antes de purgar las pistas. Al terminar, vuelve a abrirlo y las pistas rojas habrán desaparecido.",
+    btn_recheck: "Comprobar de nuevo",
+    db_sqlite_label: "Base de Datos SQLite:",
+    engine_red_tracks: "Pistas rojas (Archivos inexistentes)",
+    backup_label: "Copia de Seguridad",
+    backup_desc: "Respaldo automático previo de <code>m.db</code>",
+    orphan_tracks_engine_title: "Pistas huérfanas detectadas en Engine DJ:",
+    th_title_file: "Título / Archivo",
+    th_artist: "Artista",
+    th_playlists: "Playlists Afectadas",
+    engine_safety_note: "🛡️ <strong>100% Seguro:</strong> Se genera automáticamente una copia de seguridad <code>m.db.backup_*</code> antes de cualquier escritura. Las listas de reproducción reorganizan su índice interno para evitar saltos.",
+    btn_clean_collection: "Limpiar colección",
+    // Rekordbox Modal
+    rekordbox_modal_title: "Mantenimiento de Cabina Pioneer / Rekordbox",
+    rekordbox_modal_subtitle: "Limpieza de pistas inexistentes en USB (export.pdb) para evitar errores \"TRACK NOT FOUND\" en CDJs",
+    rekordbox_alert_title: "Rekordbox está abierto en tu ordenador",
+    rekordbox_alert_desc: "Para proteger la base de datos de exportación <code>export.pdb</code> en el USB, <strong>cierra Rekordbox</strong> antes de purgar las pistas de cabina. Al terminar, la base de datos estará limpia y optimizada.",
+    rekordbox_db_label: "Base de Datos de Cabina (DeviceSQL):",
+    rekordbox_orphan_tracks: "Pistas huérfanas en cabina (Error CDJ)",
+    rekordbox_total_tracks_desc: "Pistas totales registradas en <code>export.pdb</code>",
+    orphan_tracks_rekordbox_title: "Pistas con archivo ausente en disco (darían error en CDJ/XDJ):",
+    th_rekordbox_playlists: "Playlists de Cabina Afectadas",
+    rekordbox_safety_note: "🛡️ <strong>100% Seguro:</strong> Se genera automáticamente una copia de seguridad <code>export.pdb.backup_*</code> antes de cualquier modificación. Los reproductores CDJ/XDJ leerán las listas sin interrupciones ni pantallas rojas.",
+    // Settings Modal
+    settings_title: "Configuración & Efectos de Sonido",
+    settings_audio_header: "🔊 Efectos de Audio",
+    setting_sound_play: "Reproducir sonido al eliminar o trasladar archivos",
+    setting_sound_clean_label: "Efecto al completar la limpieza:",
+    sound_trash: "🗑️ Papelera Clásica (Sonido original de macOS Finder)",
+    sound_scratch: "💽 DJ Vinyl Scratch (Frenazo / Spinback de Vinilo)",
+    sound_airhorn: "🎺 DJ Club Airhorn (Bocina de Fiesta DJ)",
+    sound_marimba: "🎵 Acorde Armónico (Major 7th Marimba)",
+    sound_pop: "🕹️ Arcade Pop / Burbuja",
+    btn_test_sound: "▶️ Probar Sonido",
+    setting_volume_label: "Volumen del efecto:",
+    settings_dj_header: "🎛️ Preferencias de Análisis DJ",
+    setting_protect_cues_label: "Proteger siempre pistas con Cues/Playlists DJ",
+    settings_lang_header: "🌐 Idioma / Language / Langue",
+    setting_lang_label: "Idioma de la aplicación:",
+    btn_save_changes: "Guardar Cambios",
+    log_settings_saved: "⚙️ Configuración y preferencias guardadas con éxito.",
+    // Table badges
+    pill_keep: "CONSERVAR",
+    pill_discard: "ELIMINAR",
+    reason_prefix: "Motivo: ",
+    no_dj_data: "Sin datos DJ",
+  },
+  en: {
+    brand_title: "Dedupp",
+    brand_subtitle: "DJ Collection Cleaner",
+    badge_engine_title: "Engine OS / Denon Database (m.db)",
+    badge_serato_title: "Serato DJ Metadata (_Serato_ & GEOB Cues)",
+    badge_rekordbox_title: "Pioneer / Rekordbox Collection (XML / PIONEER)",
+    btn_engine_clean: "Clean Engine DJ",
+    btn_rekordbox_clean: "Rekordbox Booth",
+    btn_settings: "Settings",
+    source_label: "USB Drive or Folder:",
+    drives_searching: "Searching connected drives...",
+    btn_refresh_drives_title: "Refresh USB drives list",
+    btn_browse_folder: "Browse...",
+    path_label: "Active path:",
+    storage_free_of: "free of",
+    storage_reclaimable: "reclaimable",
+    storage_refresh: "Refresh space",
+    tolerance_label: "Duration Tolerance:",
+    tolerance_hint: "Margin for identical tracks",
+    tolerance_sec: "sec",
+    smart_policy_label: "Automatic Criterion:",
+    smart_policy_pill: "<span>💎 Quality</span><span class=\"sep\">›</span><span>🛡️ DJ Cues</span><span class=\"sep\">›</span><span>⏱️ Recent</span>",
+    btn_scan: "Scan & Preview",
+    btn_scanning: "Scanning...",
+    protect_cues_label: "Protect tracks with DJ <strong>Hot Cues, Loops or Playlists</strong>",
+    versions_hint: "Different versions (Radio vs Extended) are kept.",
+    progress_analyzing: "Analyzing audio files...",
+    progress_processed: "files processed",
+    progress_log_toggle: "Activity log",
+    log_title: "System Activity",
+    log_clear: "Clear",
+    stat_scanned: "Tracks Analyzed",
+    stat_groups: "Duplicate Groups",
+    stat_redundant: "Files to Clean",
+    stat_reclaimable: "Reclaimable Space",
+    results_title: "Analysis Results",
+    btn_export_csv: "Export CSV",
+    btn_move_duplicates: "Move Duplicates...",
+    empty_title: "Select your USB drive or folder",
+    empty_desc: "Choose your USB drive from the dropdown above and click <strong>Scan</strong>.<br>Dedupp will analyze codecs, bitrates and DJ library metadata without modifying your files.",
+    empty_clean_title: "Flawless collection!",
+    empty_clean_desc: "No duplicate tracks were found in the selected location.",
+    status_ready: "Ready",
+    status_scanning: "Scanning files...",
+    status_cleaning: "Moving files...",
+    status_completed: "Operation completed successfully.",
+    subfolder_selected: "Subfolder selected",
+    modal_dup_title: "Duplicate Files Management",
+    opt_trash_title: "🗑️ Trash (Grouped in a single folder) — Recommended",
+    opt_trash_desc: "Gathers all duplicate songs into a single dated folder and moves it to Trash. Keeps trash organized and allows reclaiming disk space when emptied.",
+    opt_quarantine_title: "🛡️ Move to Quarantine Folder on drive",
+    opt_quarantine_desc: "Isolates tracks in .dedupp_quarantine/ with a manifest.json log. (Does not free disk space until the folder is emptied).",
+    sync_engine_title: "🔄 Auto-sync with Engine DJ (Recommended)",
+    sync_engine_desc: "Relinks playlists to the highest quality preserved track and removes duplicate entries from m.db so they never appear red.",
+    sync_rekordbox_title: "💿 Sync Pioneer / Rekordbox Booth playlists (Recommended)",
+    sync_rekordbox_desc: "Relinks export.pdb playlists to the preserved track to prevent \"TRACK NOT FOUND\" errors on CDJs.",
+    btn_open_trash_finder: "📂 Open Trash in Finder",
+    btn_cancel: "Cancel",
+    btn_close: "Close",
+    btn_confirm_move: "Confirm & Move",
+    engine_modal_title: "Engine DJ Maintenance",
+    engine_modal_subtitle: "Red track cleanup and playlist relinking",
+    engine_alert_title: "Engine DJ is currently open on your computer",
+    engine_alert_desc: "To protect the <code>m.db</code> database, please <strong>close Engine DJ</strong> before purging tracks. Once finished, reopen it and red tracks will be gone.",
+    btn_recheck: "Check again",
+    db_sqlite_label: "SQLite Database:",
+    engine_red_tracks: "Red tracks (Missing audio files)",
+    backup_label: "Backup",
+    backup_desc: "Automatic backup created for <code>m.db</code>",
+    orphan_tracks_engine_title: "Missing tracks found in Engine DJ:",
+    th_title_file: "Title / File",
+    th_artist: "Artist",
+    th_playlists: "Affected Playlists",
+    engine_safety_note: "🛡️ <strong>100% Safe:</strong> An automatic backup <code>m.db.backup_*</code> is generated before any modification. Playlists reorder their internal indices seamlessly.",
+    btn_clean_collection: "Clean collection",
+    rekordbox_modal_title: "Pioneer / Rekordbox Booth Maintenance",
+    rekordbox_modal_subtitle: "Cleanup of missing tracks on USB (export.pdb) to avoid \"TRACK NOT FOUND\" errors on CDJs",
+    rekordbox_alert_title: "Rekordbox is currently open on your computer",
+    rekordbox_alert_desc: "To protect the USB export database <code>export.pdb</code>, please <strong>close Rekordbox</strong> before purging booth tracks. The database will be clean and optimized.",
+    rekordbox_db_label: "Booth Database (DeviceSQL):",
+    rekordbox_orphan_tracks: "Missing tracks in booth (CDJ Load Error)",
+    rekordbox_total_tracks_desc: "Total tracks registered in <code>export.pdb</code>",
+    orphan_tracks_rekordbox_title: "Tracks missing on disk (would trigger CDJ error):",
+    th_rekordbox_playlists: "Affected Booth Playlists",
+    rekordbox_safety_note: "🛡️ <strong>100% Safe:</strong> An automatic backup <code>export.pdb.backup_*</code> is generated before any modification. CDJ/XDJ players will read lists without missing track warnings.",
+    settings_title: "Settings & Sound Effects",
+    settings_audio_header: "🔊 Audio Effects",
+    setting_sound_play: "Play sound effect when deleting or moving files",
+    setting_sound_clean_label: "Sound effect upon cleaning completion:",
+    sound_trash: "🗑️ Classic Trash (Original macOS Finder sound)",
+    sound_scratch: "💽 DJ Vinyl Scratch (Spinback / Brake)",
+    sound_airhorn: "🎺 DJ Club Airhorn (Party horn)",
+    sound_marimba: "🎵 Harmonic Chord (Major 7th Marimba)",
+    sound_pop: "🕹️ Arcade Pop / Bubble",
+    btn_test_sound: "▶️ Test Sound",
+    setting_volume_label: "Sound effect volume:",
+    settings_dj_header: "🎛️ DJ Analysis Preferences",
+    setting_protect_cues_label: "Always protect tracks with DJ Cues/Playlists",
+    settings_lang_header: "🌐 Language / Idioma / Langue",
+    setting_lang_label: "Application language:",
+    btn_save_changes: "Save Changes",
+    log_settings_saved: "⚙️ Settings and preferences saved successfully.",
+    pill_keep: "KEEP",
+    pill_discard: "REMOVE",
+    reason_prefix: "Reason: ",
+    no_dj_data: "No DJ data",
+  },
+  fr: {
+    brand_title: "Dedupp",
+    brand_subtitle: "Nettoyeur de Collections DJ",
+    badge_engine_title: "Base de données Engine OS / Denon (m.db)",
+    badge_serato_title: "Métadonnées Serato DJ (_Serato_ & Cues GEOB)",
+    badge_rekordbox_title: "Collection Pioneer / Rekordbox (XML / PIONEER)",
+    btn_engine_clean: "Nettoyer Engine DJ",
+    btn_rekordbox_clean: "Cabine Rekordbox",
+    btn_settings: "Réglages",
+    source_label: "Clé USB ou Dossier :",
+    drives_searching: "Recherche des disques connectés...",
+    btn_refresh_drives_title: "Actualiser la liste des clés USB",
+    btn_browse_folder: "Parcourir...",
+    path_label: "Chemin actif :",
+    storage_free_of: "libres sur",
+    storage_reclaimable: "récupérables",
+    storage_refresh: "Actualiser l'espace",
+    tolerance_label: "Tolérance de Durée :",
+    tolerance_hint: "Marge pour morceaux identiques",
+    tolerance_sec: "sec",
+    smart_policy_label: "Critère Automatique :",
+    smart_policy_pill: "<span>💎 Qualité</span><span class=\"sep\">›</span><span>🛡️ Cues DJ</span><span class=\"sep\">›</span><span>⏱️ Récent</span>",
+    btn_scan: "Analyser et Prévisualiser",
+    btn_scanning: "Analyse en cours...",
+    protect_cues_label: "Protéger les pistes avec <strong>Hot Cues, Loops ou Playlists</strong> DJ",
+    versions_hint: "Les versions différentes (Radio vs Extended) sont conservées.",
+    progress_analyzing: "Analyse des fichiers audio...",
+    progress_processed: "fichiers traités",
+    progress_log_toggle: "Journal d'activité",
+    log_title: "Activité du Système",
+    log_clear: "Effacer",
+    stat_scanned: "Pistes Analysées",
+    stat_groups: "Groupes de Doublons",
+    stat_redundant: "Fichiers à Nettoyer",
+    stat_reclaimable: "Espace Récupérable",
+    results_title: "Résultats de l'Analyse",
+    btn_export_csv: "Exporter CSV",
+    btn_move_duplicates: "Déplacer les Doublons...",
+    empty_title: "Sélectionnez votre clé USB ou dossier",
+    empty_desc: "Choisissez votre clé USB dans le menu déroulant et cliquez sur <strong>Analyser</strong>.<br>Dedupp analysera les codecs, débits et données DJ sans modifier vos fichiers.",
+    empty_clean_title: "Collection impeccable !",
+    empty_clean_desc: "Aucun morceau en double n'a été trouvé dans l'emplacement sélectionné.",
+    status_ready: "Prêt",
+    status_scanning: "Analyse des fichiers...",
+    status_cleaning: "Déplacement des fichiers...",
+    status_completed: "Opération terminée avec succès.",
+    subfolder_selected: "Sous-dossier sélectionné",
+    modal_dup_title: "Gestion des Fichiers en Double",
+    opt_trash_title: "🗑️ Corbeille (Regroupés dans un seul dossier) — Recommandé",
+    opt_trash_desc: "Rassemble tous les morceaux en double dans un seul dossier daté et le déplace vers la Corbeille. Garde la corbeille propre et libère de l'espace réel lorsqu'elle est vidée.",
+    opt_quarantine_title: "🛡️ Déplacer vers le Dossier de Quarantaine du disque",
+    opt_quarantine_desc: "Isole les morceaux dans .dedupp_quarantine/ avec un fichier manifest.json. (Ne libère pas d'espace disque tant que le dossier n'est pas supprimé).",
+    sync_engine_title: "🔄 Synchroniser auto avec Engine DJ (Recommandé)",
+    sync_engine_desc: "Relie les playlists au morceau conservé de meilleure qualité et supprime les doublons de m.db pour qu'ils n'apparaissent jamais en rouge.",
+    sync_rekordbox_title: "💿 Synchroniser les playlists Pioneer / Rekordbox (Recommandé)",
+    sync_rekordbox_desc: "Relie les playlists dans export.pdb au morceau conservé pour éviter les erreurs \"TRACK NOT FOUND\" sur les lecteurs CDJ.",
+    btn_open_trash_finder: "📂 Ouvrir la Corbeille dans Finder",
+    btn_cancel: "Annuler",
+    btn_close: "Fermer",
+    btn_confirm_move: "Confirmer et Déplacer",
+    engine_modal_title: "Maintenance Engine DJ",
+    engine_modal_subtitle: "Suppression des pistes rouges et synchronisation des playlists",
+    engine_alert_title: "Engine DJ est ouvert sur votre ordinateur",
+    engine_alert_desc: "Pour protéger la base de données <code>m.db</code>, veuillez <strong>fermer Engine DJ</strong> avant de purger les pistes.",
+    btn_recheck: "Vérifier à nouveau",
+    db_sqlite_label: "Base de Données SQLite :",
+    engine_red_tracks: "Pistes rouges (Fichiers absents)",
+    backup_label: "Copie de Sauvegarde",
+    backup_desc: "Sauvegarde automatique préalable de <code>m.db</code>",
+    orphan_tracks_engine_title: "Pistes orphelines détectées dans Engine DJ :",
+    th_title_file: "Titre / Fichier",
+    th_artist: "Artiste",
+    th_playlists: "Playlists Affectées",
+    engine_safety_note: "🛡️ <strong>100% Sûr :</strong> Une sauvegarde automatique <code>m.db.backup_*</code> est générée avant toute modification.",
+    btn_clean_collection: "Nettoyer la collection",
+    rekordbox_modal_title: "Maintenance Cabine Pioneer / Rekordbox",
+    rekordbox_modal_subtitle: "Nettoyage des pistes absentes sur clé USB (export.pdb) pour éviter les erreurs sur CDJs",
+    rekordbox_alert_title: "Rekordbox est ouvert sur votre ordinateur",
+    rekordbox_alert_desc: "Pour protéger la base de données <code>export.pdb</code>, veuillez <strong>fermer Rekordbox</strong> avant de purger.",
+    rekordbox_db_label: "Base de Données Cabine (DeviceSQL) :",
+    rekordbox_orphan_tracks: "Pistes orphelines en cabine (Erreur CDJ)",
+    rekordbox_total_tracks_desc: "Pistes totales enregistrées dans <code>export.pdb</code>",
+    orphan_tracks_rekordbox_title: "Pistes avec fichier absent du disque (erreur sur CDJ/XDJ) :",
+    th_rekordbox_playlists: "Playlists de Cabine Affectées",
+    rekordbox_safety_note: "🛡️ <strong>100% Sûr :</strong> Une copie de sauvegarde <code>export.pdb.backup_*</code> est créée automatiquement avant toute écriture.",
+    settings_title: "Paramètres & Effets Sonores",
+    settings_audio_header: "🔊 Effets Audio",
+    setting_sound_play: "Jouer un son lors du déplacement des fichiers",
+    setting_sound_clean_label: "Effet sonore à la fin du nettoyage :",
+    sound_trash: "🗑️ Corbeille Classique (Son macOS Finder)",
+    sound_scratch: "💽 DJ Vinyl Scratch (Spinback de Vinyle)",
+    sound_airhorn: "🎺 DJ Club Airhorn (Klaxon de Fête)",
+    sound_marimba: "🎵 Accord Harmonique (Marimba 7e majeure)",
+    sound_pop: "🕹️ Arcade Pop / Bulle",
+    btn_test_sound: "▶️ Tester le Son",
+    setting_volume_label: "Volume de l'effet sonore :",
+    settings_dj_header: "🎛️ Préférences d'Analyse DJ",
+    setting_protect_cues_label: "Toujours protéger les pistes avec Cues/Playlists DJ",
+    settings_lang_header: "🌐 Langue / Language / Idioma",
+    setting_lang_label: "Langue de l'application :",
+    btn_save_changes: "Enregistrer les Modifications",
+    log_settings_saved: "⚙️ Paramètres et préférences enregistrés avec succès.",
+    pill_keep: "CONSERVER",
+    pill_discard: "SUPPRIMER",
+    reason_prefix: "Raison : ",
+    no_dj_data: "Sans données DJ",
+  }
+};
+
+function t(key, vars = {}) {
+  const dict = i18n[currentLanguage] || i18n["es"];
+  let str = dict[key] || (i18n["es"] && i18n["es"][key]) || key;
+  for (const [k, v] of Object.entries(vars)) {
+    str = str.replace(new RegExp(`{${k}}`, "g"), v);
+  }
+  return str;
+}
+
+function applyAppLanguage(lang) {
+  if (!i18n[lang]) lang = "es";
+  currentLanguage = lang;
+  document.documentElement.lang = lang;
+
+  // Header & Brand
+  const brandH1 = document.querySelector(".brand-text h1");
+  if (brandH1) brandH1.innerText = t("brand_title");
+  const brandSub = document.querySelector(".brand-text .subtitle");
+  if (brandSub) brandSub.innerText = t("brand_subtitle");
+
+  // DJ Badges titles
+  if (badgeEngine) badgeEngine.title = t("badge_engine_title");
+  if (badgeSerato) badgeSerato.title = t("badge_serato_title");
+  if (badgeRekordbox) badgeRekordbox.title = t("badge_rekordbox_title");
+
+  // Toolbar Buttons
+  if (btnEngineClean) {
+    const s = btnEngineClean.querySelector("span:not(.mac-badge-count)");
+    if (s) s.innerText = t("btn_engine_clean");
+  }
+  if (btnRekordboxClean) {
+    const s = btnRekordboxClean.querySelector("span:not(.mac-badge-count)");
+    if (s) s.innerText = t("btn_rekordbox_clean");
+  }
+  if (btnOpenSettings) {
+    const s = btnOpenSettings.querySelector("span");
+    if (s) s.innerText = t("btn_settings");
+  }
+
+  // Source Section
+  const driveLabel = document.querySelector("label[for='drive-select']");
+  if (driveLabel) driveLabel.innerText = t("source_label");
+  if (btnRefreshDrives) btnRefreshDrives.title = t("btn_refresh_drives_title");
+  if (btnBrowseFolder) {
+    const s = btnBrowseFolder.querySelector("span");
+    if (s) s.innerText = t("btn_browse_folder");
+  }
+  const pathLabelEl = document.querySelector(".path-label");
+  if (pathLabelEl) pathLabelEl.innerText = t("path_label");
+  if (btnRefreshStorage) btnRefreshStorage.innerText = t("storage_refresh");
+
+  // Parameters
+  const tolLabel = document.querySelector("label[for='tolerance-input']");
+  if (tolLabel) tolLabel.innerText = t("tolerance_label");
+  const tolHint = document.querySelector(".tolerance-hint");
+  if (tolHint) tolHint.innerText = t("tolerance_hint");
+  const smartLabel = document.querySelector(".smart-policy-group label");
+  if (smartLabel) smartLabel.innerText = t("smart_policy_label");
+  const policyPill = document.querySelector(".policy-pill");
+  if (policyPill) policyPill.innerHTML = t("smart_policy_pill");
+  if (scanText) scanText.innerText = t("btn_scan");
+  const cuesLabel = document.querySelector(".options-row label span:last-child");
+  if (cuesLabel) cuesLabel.innerHTML = t("protect_cues_label");
+  const versionsTip = document.querySelector(".options-row .info-tip");
+  if (versionsTip) versionsTip.innerText = t("versions_hint");
+
+  // Progress Panel
+  if (btnToggleLog) btnToggleLog.innerText = t("progress_log_toggle");
+  const logTitleEl = document.querySelector(".log-console-title");
+  if (logTitleEl) {
+    logTitleEl.innerHTML = `<svg class="mac-svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg> ${t("log_title")}`;
+  }
+  if (btnClearLog) btnClearLog.innerText = t("log_clear");
+
+  // Stats
+  const statLabels = document.querySelectorAll(".stat-card .stat-label");
+  if (statLabels && statLabels.length >= 4) {
+    statLabels[0].innerText = t("stat_scanned");
+    statLabels[1].innerText = t("stat_groups");
+    statLabels[2].innerText = t("stat_redundant");
+    statLabels[3].innerText = t("stat_reclaimable");
+  }
+
+  // Results
+  const resH2 = document.querySelector(".results-header h2");
+  if (resH2) resH2.innerText = t("results_title");
+  if (btnExportCsv) {
+    const s = btnExportCsv.querySelector("span");
+    if (s) s.innerText = t("btn_export_csv");
+  }
+  if (btnApplyQuarantine) {
+    const s = btnApplyQuarantine.querySelector("span");
+    if (s) s.innerText = t("btn_move_duplicates");
+  }
+  if (emptyState) {
+    const h3 = emptyState.querySelector("h3");
+    if (h3) h3.innerText = t("empty_title");
+    const p = emptyState.querySelector("p");
+    if (p) p.innerHTML = t("empty_desc");
+  }
+
+  // Duplicates Modal
+  const mTitle = document.getElementById("modal-title");
+  if (mTitle) mTitle.innerText = t("modal_dup_title");
+  const optTrashTitle = document.querySelector("#opt-trash .mode-text strong");
+  if (optTrashTitle) optTrashTitle.innerText = t("opt_trash_title");
+  const optTrashDesc = document.querySelector("#opt-trash .mode-text p");
+  if (optTrashDesc) optTrashDesc.innerText = t("opt_trash_desc");
+  const optQuarTitle = document.querySelector("#opt-quarantine .mode-text strong");
+  if (optQuarTitle) optQuarTitle.innerText = t("opt_quarantine_title");
+  const optQuarDesc = document.querySelector("#opt-quarantine .mode-text p");
+  if (optQuarDesc) optQuarDesc.innerText = t("opt_quarantine_desc");
+
+  const syncEngTitle = document.querySelector("#engine-sync-card .engine-sync-desc strong");
+  if (syncEngTitle) syncEngTitle.innerText = t("sync_engine_title");
+  const syncEngDesc = document.querySelector("#engine-sync-card .engine-sync-desc p");
+  if (syncEngDesc) syncEngDesc.innerHTML = t("sync_engine_desc");
+
+  const syncRkbTitle = document.querySelector("#rekordbox-sync-card .rekordbox-sync-desc strong");
+  if (syncRkbTitle) syncRkbTitle.innerText = t("sync_rekordbox_title");
+  const syncRkbDesc = document.querySelector("#rekordbox-sync-card .rekordbox-sync-desc p");
+  if (syncRkbDesc) syncRkbDesc.innerHTML = t("sync_rekordbox_desc");
+
+  if (modalBtnOpenTrash) modalBtnOpenTrash.innerText = t("btn_open_trash_finder");
+  if (modalBtnCancel) modalBtnCancel.innerText = t("btn_cancel");
+  if (modalBtnConfirm) modalBtnConfirm.innerText = t("btn_confirm_move");
+
+  // Engine DJ Modal
+  const engH3 = document.querySelector(".engine-dialog .engine-modal-titles h3");
+  if (engH3) engH3.innerText = t("engine_modal_title");
+  const engSub = document.querySelector(".engine-dialog .engine-modal-subtitle");
+  if (engSub) engSub.innerText = t("engine_modal_subtitle");
+  const engAlertStrong = document.querySelector("#engine-running-alert strong");
+  if (engAlertStrong) engAlertStrong.innerText = t("engine_alert_title");
+  const engAlertP = document.querySelector("#engine-running-alert p");
+  if (engAlertP) engAlertP.innerHTML = t("engine_alert_desc");
+  if (btnRecheckEngineRunning) btnRecheckEngineRunning.innerText = t("btn_recheck");
+  const engDbLabel = document.querySelector(".engine-dialog .engine-stat-label");
+  if (engDbLabel) engDbLabel.innerText = t("db_sqlite_label");
+  const engRedDesc = document.querySelector(".engine-stat-pill.engine-stat-red .stat-desc");
+  if (engRedDesc) engRedDesc.innerText = t("engine_red_tracks");
+  const engBkpNum = document.querySelector(".engine-stat-pill.engine-stat-info .stat-number");
+  if (engBkpNum) engBkpNum.innerText = t("backup_label");
+  const engBkpDesc = document.querySelector(".engine-stat-pill.engine-stat-info .stat-desc");
+  if (engBkpDesc) engBkpDesc.innerHTML = t("backup_desc");
+  const engTracksH4 = document.querySelector(".engine-tracks-header h4");
+  if (engTracksH4) engTracksH4.innerText = t("orphan_tracks_engine_title");
+  const engThs = document.querySelectorAll(".engine-table thead th");
+  if (engThs && engThs.length >= 3) {
+    engThs[0].innerText = t("th_title_file");
+    engThs[1].innerText = t("th_artist");
+    engThs[2].innerText = t("th_playlists");
+  }
+  const engSafety = document.querySelector(".engine-safety-note");
+  if (engSafety) engSafety.innerHTML = t("engine_safety_note");
+  if (btnCancelEngine) btnCancelEngine.innerText = t("btn_close");
+  if (btnConfirmPurgeText) btnConfirmPurgeText.innerText = t("btn_clean_collection");
+
+  // Rekordbox Modal
+  const rkbH3 = document.querySelector(".rekordbox-dialog .engine-modal-titles h3");
+  if (rkbH3) rkbH3.innerText = t("rekordbox_modal_title");
+  const rkbSub = document.querySelector(".rekordbox-dialog .engine-modal-subtitle");
+  if (rkbSub) rkbSub.innerText = t("rekordbox_modal_subtitle");
+  const rkbAlertStrong = document.querySelector("#rekordbox-running-alert strong");
+  if (rkbAlertStrong) rkbAlertStrong.innerText = t("rekordbox_alert_title");
+  const rkbAlertP = document.querySelector("#rekordbox-running-alert p");
+  if (rkbAlertP) rkbAlertP.innerHTML = t("rekordbox_alert_desc");
+  if (btnRecheckRekordboxRunning) btnRecheckRekordboxRunning.innerText = t("btn_recheck");
+  const rkbDbLabel = document.querySelector(".rekordbox-dialog .engine-stat-label");
+  if (rkbDbLabel) rkbDbLabel.innerText = t("rekordbox_db_label");
+  const rkbRedDesc = document.querySelector(".rekordbox-dialog .engine-stat-pill.engine-stat-red .stat-desc");
+  if (rkbRedDesc) rkbRedDesc.innerText = t("rekordbox_orphan_tracks");
+  const rkbTotDesc = document.querySelector("#rekordbox-total-tracks + .stat-desc");
+  if (rkbTotDesc) rkbTotDesc.innerHTML = t("rekordbox_total_tracks_desc");
+  const rkbTracksH4 = document.querySelector(".rekordbox-dialog .engine-tracks-header h4");
+  if (rkbTracksH4) rkbTracksH4.innerText = t("orphan_tracks_rekordbox_title");
+  const rkbThs = document.querySelectorAll(".rekordbox-dialog table thead th");
+  if (rkbThs && rkbThs.length >= 3) {
+    rkbThs[0].innerText = t("th_title_file");
+    rkbThs[1].innerText = t("th_artist");
+    rkbThs[2].innerText = t("th_rekordbox_playlists");
+  }
+  const rkbSafety = document.querySelector(".rekordbox-dialog .engine-safety-note");
+  if (rkbSafety) rkbSafety.innerHTML = t("rekordbox_safety_note");
+  if (btnCancelRekordbox) btnCancelRekordbox.innerText = t("btn_close");
+  if (btnConfirmPurgeRekordboxText) btnConfirmPurgeRekordboxText.innerText = t("btn_clean_collection");
+
+  // Settings Modal
+  const setH3 = document.querySelector(".settings-dialog h3");
+  if (setH3) setH3.innerText = t("settings_title");
+  const setSecs = document.querySelectorAll(".settings-section h4");
+  if (setSecs && setSecs.length >= 3) {
+    setSecs[0].innerText = t("settings_audio_header");
+    setSecs[1].innerText = t("settings_dj_header");
+    setSecs[2].innerText = t("settings_lang_header");
+  }
+  const sndPlayLbl = document.querySelector("label[for='setting-sound-enabled'] .setting-label");
+  if (sndPlayLbl) sndPlayLbl.innerText = t("setting_sound_play");
+  const sndChoiceLbl = document.querySelector("label[for='setting-sound-choice']");
+  if (sndChoiceLbl) sndChoiceLbl.innerText = t("setting_sound_clean_label");
+
+  const optTrash = document.querySelector("#setting-sound-choice option[value='trash']");
+  if (optTrash) optTrash.innerText = t("sound_trash");
+  const optScratch = document.querySelector("#setting-sound-choice option[value='scratch']");
+  if (optScratch) optScratch.innerText = t("sound_scratch");
+  const optAirhorn = document.querySelector("#setting-sound-choice option[value='airhorn']");
+  if (optAirhorn) optAirhorn.innerText = t("sound_airhorn");
+  const optMarimba = document.querySelector("#setting-sound-choice option[value='marimba']");
+  if (optMarimba) optMarimba.innerText = t("sound_marimba");
+  const optPop = document.querySelector("#setting-sound-choice option[value='pop']");
+  if (optPop) optPop.innerText = t("sound_pop");
+
+  if (btnTestSound) btnTestSound.innerText = t("btn_test_sound");
+  const volLbl = document.querySelector("label[for='setting-sound-volume']");
+  if (volLbl) volLbl.innerText = t("setting_volume_label");
+  const protCueLbl = document.querySelector("label[for='setting-protect-cues-default'] .setting-label");
+  if (protCueLbl) protCueLbl.innerText = t("setting_protect_cues_label");
+  const langChoiceLbl = document.querySelector("label[for='setting-language-choice']");
+  if (langChoiceLbl) langChoiceLbl.innerText = t("setting_lang_label");
+
+  if (btnCancelSettings) btnCancelSettings.innerText = t("btn_cancel");
+  if (btnCloseSettings) btnCloseSettings.innerText = t("btn_save_changes");
+
+  if (settingLanguageChoice) settingLanguageChoice.value = lang;
+
+  if (currentDecisions && currentDecisions.length > 0) {
+    renderDecisions(currentDecisions);
+  }
+}
+
 let soundSettings = {
   enabled: true,
   sound: "trash",
   volume: 0.85,
   protectCuesDefault: true,
+  language: "es",
 };
 
 function applySettingsToForm(settings) {
@@ -162,6 +728,7 @@ function applySettingsToForm(settings) {
     if (volumeValText) volumeValText.innerText = `${Math.round(settings.volume * 100)}%`;
   }
   if (settingProtectCuesDefault) settingProtectCuesDefault.checked = settings.protectCuesDefault;
+  if (settingLanguageChoice) settingLanguageChoice.value = settings.language || "es";
 }
 
 function loadSettingsFromStorage() {
@@ -176,6 +743,7 @@ function loadSettingsFromStorage() {
   }
   applySettingsToForm(soundSettings);
   if (protectCuesCheckbox) protectCuesCheckbox.checked = soundSettings.protectCuesDefault;
+  applyAppLanguage(soundSettings.language || "es");
 }
 
 function saveSettingsToStorage() {
@@ -630,7 +1198,6 @@ async function loadDrives(preselectPath = null) {
       driveSelect.value = defaultVal;
       currentRootPath = defaultVal;
       currentPathText.innerText = defaultVal;
-      if (btnResetDrive) btnResetDrive.style.display = "none";
       updateStorageWidget(defaultVal);
       checkEngineDjStatus(defaultVal);
       checkRekordboxStatus(defaultVal);
@@ -648,19 +1215,6 @@ async function loadDrives(preselectPath = null) {
 driveSelect.addEventListener("change", () => {
   currentRootPath = driveSelect.value;
   currentPathText.innerText = currentRootPath;
-  btnResetDrive.style.display = "none";
-  updateStorageWidget(currentRootPath);
-  checkEngineDjStatus(currentRootPath);
-  checkRekordboxStatus(currentRootPath);
-});
-
-// Botón volver a escanear toda la unidad (en caso de haber elegido una subcarpeta)
-btnResetDrive.addEventListener("click", () => {
-  currentRootPath = driveSelect.value;
-  currentPathText.innerText = currentRootPath;
-  btnResetDrive.style.display = "none";
-  statusMsg.innerText = `Ruta restablecida a toda la unidad: ${currentRootPath}`;
-  appendLog(`Ruta activa restablecida a la raíz: ${currentRootPath}`);
   updateStorageWidget(currentRootPath);
   checkEngineDjStatus(currentRootPath);
   checkRekordboxStatus(currentRootPath);
@@ -696,12 +1250,6 @@ btnBrowseFolder.addEventListener("click", async () => {
     if (selected) {
       currentRootPath = selected;
       currentPathText.innerText = selected;
-      if (selected !== baseDrive) {
-        btnResetDrive.style.display = "inline-flex";
-      } else {
-        btnResetDrive.style.display = "none";
-      }
-
       statusMsg.innerText = `Subcarpeta seleccionada: ${selected}`;
       appendLog(`Subcarpeta seleccionada para escaneo: ${selected}`, true);
       updateStorageWidget(selected);
@@ -894,13 +1442,14 @@ btnScan.addEventListener("click", async () => {
 
   btnScan.disabled = true;
   scanIcon.innerText = "⏳";
-  scanText.innerText = "Escaneando...";
+  scanText.innerText = t("btn_scanning");
 
   progressPanel.style.display = "flex";
+  if (macSpinner) macSpinner.style.display = "inline-block";
   logConsoleWrap.style.display = isLogVisible ? "flex" : "none";
   progressFill.style.width = "0%";
   progressPercent.innerText = "0%";
-  progressTitle.innerText = `Analizando colección en ${path}...`;
+  progressTitle.innerText = `${t("progress_analyzing")} (${path})`;
   progressFilename.innerText = "Iniciando escaneo de archivos...";
   progressCount.innerText = "Calculando...";
 
@@ -937,6 +1486,7 @@ btnScan.addEventListener("click", async () => {
     progressPercent.innerText = "100%";
     progressTitle.innerText = "¡Escaneo completado!";
     progressFilename.innerText = `${decisions.length} grupos de duplicados listos para revisar.`;
+    if (macSpinner) macSpinner.style.display = "none";
 
     appendLog(`Proceso finalizado con éxito: ${decisions.length} grupos duplicados identificados.`, true);
 
@@ -963,7 +1513,8 @@ btnScan.addEventListener("click", async () => {
   } finally {
     btnScan.disabled = false;
     scanIcon.innerText = "🔍";
-    scanText.innerText = "Escanear y Previsualizar";
+    scanText.innerText = t("btn_scan");
+    if (macSpinner) macSpinner.style.display = "none";
   }
 });
 
@@ -1252,6 +1803,7 @@ function closeSettingsWithoutSaving() {
   if (savedSettingsSnapshot) {
     soundSettings = { ...savedSettingsSnapshot };
     applySettingsToForm(soundSettings);
+    applyAppLanguage(soundSettings.language || "es");
     if (protectCuesCheckbox) protectCuesCheckbox.checked = soundSettings.protectCuesDefault;
   }
   settingsModal.style.display = "none";
@@ -1260,19 +1812,28 @@ function closeSettingsWithoutSaving() {
 
 // Guardar los cambios confirmados y cerrar
 function saveAndCloseSettings() {
+  const chosenLang = settingLanguageChoice ? settingLanguageChoice.value : (soundSettings.language || "es");
   soundSettings = {
     enabled: settingSoundEnabled ? settingSoundEnabled.checked : true,
     sound: settingSoundChoice ? settingSoundChoice.value : "trash",
     volume: settingSoundVolume ? parseFloat(settingSoundVolume.value) / 100 : 0.85,
     protectCuesDefault: settingProtectCuesDefault ? settingProtectCuesDefault.checked : true,
+    language: chosenLang,
   };
   if (protectCuesCheckbox) {
     protectCuesCheckbox.checked = soundSettings.protectCuesDefault;
   }
+  applyAppLanguage(chosenLang);
   saveSettingsToStorage();
   settingsModal.style.display = "none";
   savedSettingsSnapshot = null;
-  appendLog("⚙️ Configuración y preferencias guardadas con éxito.", true);
+  appendLog(t("log_settings_saved") || "⚙️ Configuración y preferencias guardadas con éxito.", true);
+}
+
+if (settingLanguageChoice) {
+  settingLanguageChoice.addEventListener("change", (e) => {
+    applyAppLanguage(e.target.value);
+  });
 }
 
 if (btnOpenSettings) {
@@ -1458,9 +2019,7 @@ async function openEngineModal() {
     engineTracksCountLabel.innerText = `${count.toLocaleString()} pistas`;
 
     if (btnConfirmPurgeText) {
-      btnConfirmPurgeText.innerText = count > 0 
-        ? `Eliminar ${count.toLocaleString()} Pistas Rojas` 
-        : `Eliminar Pistas Rojas`;
+      btnConfirmPurgeText.innerText = t("btn_clean_collection");
     }
 
     if (count === 0) {
@@ -1695,9 +2254,7 @@ async function openRekordboxModal() {
     rekordboxTracksCountLabel.innerText = `${count.toLocaleString()} pistas`;
 
     if (btnConfirmPurgeRekordboxText) {
-      btnConfirmPurgeRekordboxText.innerText = count > 0 
-        ? `Limpiar ${count.toLocaleString()} Pistas Huérfanas de Cabina` 
-        : `Limpiar Pistas de Cabina`;
+      btnConfirmPurgeRekordboxText.innerText = t("btn_clean_collection");
     }
 
     if (count === 0) {

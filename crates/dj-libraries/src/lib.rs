@@ -10,6 +10,29 @@ pub use rekordbox::{
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
+/// Helper para comprobar si una ruta es la raíz del sistema o un punto de montaje de volúmenes donde detener la búsqueda hacia arriba.
+pub fn is_mount_boundary(path: &Path) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        if path == Path::new("/") || path == Path::new("/Volumes") || path == Path::new("/Users") {
+            return true;
+        }
+    }
+    #[cfg(target_os = "windows")]
+    {
+        if path.parent().is_none() {
+            return true;
+        }
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        if path == Path::new("/") || path == Path::new("/mnt") || path == Path::new("/media") {
+            return true;
+        }
+    }
+    path.parent().is_none()
+}
+
 /// Resumen de los entornos de DJ detectados en la unidad o carpeta escaneada.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DetectedLibraries {
@@ -23,39 +46,102 @@ pub struct DetectedLibraries {
 }
 
 impl DetectedLibraries {
-    /// Detecta qué software de DJ tiene presencia en la ruta especificada (disco o USB).
+    /// Detecta qué software de DJ tiene presencia en la ruta especificada (disco o USB),
+    /// buscando en la carpeta y ascendiendo hacia la raíz de la unidad si es una subcarpeta.
     pub fn detect_in_root<P: AsRef<Path>>(root: P) -> Self {
-        let root = root.as_ref();
+        let start = root.as_ref();
         let mut detected = Self::default();
 
-        // 1. Engine DJ: Busca "Engine Library/Database2/m.db" o "Database2/m.db"
-        let engine_db1 = root.join("Engine Library").join("Database2").join("m.db");
-        let engine_db2 = root.join("Database2").join("m.db");
-        if engine_db1.is_file() {
-            detected.has_engine_dj = true;
-            detected.engine_dj_db_path = Some(engine_db1);
-        } else if engine_db2.is_file() {
-            detected.has_engine_dj = true;
-            detected.engine_dj_db_path = Some(engine_db2);
-        }
+        let mut curr = Some(start);
+        while let Some(dir) = curr {
+            // 1. Engine DJ: Busca "Engine Library/Database2/m.db", "Database2/m.db" o variantes
+            if !detected.has_engine_dj {
+                let engine_db1 = dir.join("Engine Library").join("Database2").join("m.db");
+                let engine_db2 = dir.join("Database2").join("m.db");
+                let engine_db3 = dir.join("Engine Library").join("m.db");
+                if engine_db1.is_file() {
+                    detected.has_engine_dj = true;
+                    detected.engine_dj_db_path = Some(engine_db1);
+                } else if engine_db2.is_file() {
+                    detected.has_engine_dj = true;
+                    detected.engine_dj_db_path = Some(engine_db2);
+                } else if engine_db3.is_file() {
+                    detected.has_engine_dj = true;
+                    detected.engine_dj_db_path = Some(engine_db3);
+                } else if let Ok(entries) = std::fs::read_dir(dir) {
+                    for entry in entries.flatten() {
+                        let name = entry.file_name().to_string_lossy().to_lowercase();
+                        if name == "engine library" {
+                            let candidate1 = entry.path().join("Database2").join("m.db");
+                            let candidate2 = entry.path().join("m.db");
+                            if candidate1.is_file() {
+                                detected.has_engine_dj = true;
+                                detected.engine_dj_db_path = Some(candidate1);
+                                break;
+                            } else if candidate2.is_file() {
+                                detected.has_engine_dj = true;
+                                detected.engine_dj_db_path = Some(candidate2);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
 
-        // 2. Serato: Busca "_Serato_" o "_Serato_Backup"
-        let serato_dir = root.join("_Serato_");
-        if serato_dir.is_dir() {
-            detected.has_serato = true;
-            detected.serato_dir = Some(serato_dir);
-        }
+            // 2. Serato: Busca "_Serato_" o "_Serato_Backup"
+            if !detected.has_serato {
+                let serato_dir = dir.join("_Serato_");
+                let serato_backup = dir.join("_Serato_Backup");
+                if serato_dir.is_dir() {
+                    detected.has_serato = true;
+                    detected.serato_dir = Some(serato_dir);
+                } else if serato_backup.is_dir() {
+                    detected.has_serato = true;
+                    detected.serato_dir = Some(serato_backup);
+                }
+            }
 
-        // 3. Rekordbox: Busca carpeta "PIONEER/rekordbox" o archivos xml
-        let pioneer_dir = root.join("PIONEER").join("rekordbox");
-        let rekordbox_xml = root.join("rekordbox.xml");
-        if pioneer_dir.is_dir() {
-            detected.has_rekordbox = true;
-            detected.rekordbox_dir = Some(pioneer_dir);
-        }
-        if rekordbox_xml.is_file() {
-            detected.has_rekordbox = true;
-            detected.rekordbox_xml = Some(rekordbox_xml);
+            // 3. Rekordbox: Busca carpeta "PIONEER/rekordbox", "PIONEER", export.pdb, exportLibrary.db o archivos xml
+            if !detected.has_rekordbox {
+                let pioneer_dir = dir.join("PIONEER").join("rekordbox");
+                let pioneer_base = dir.join("PIONEER");
+                let pdb_file = pioneer_dir.join("export.pdb");
+                let pdb_ext = pioneer_dir.join("exportExt.pdb");
+                let pdb_lib = pioneer_dir.join("exportLibrary.db");
+                let rekordbox_xml = dir.join("rekordbox.xml");
+
+                if pdb_file.is_file() || pdb_ext.is_file() || pdb_lib.is_file() {
+                    detected.has_rekordbox = true;
+                    detected.rekordbox_dir = Some(pioneer_dir);
+                } else if pioneer_dir.is_dir() {
+                    detected.has_rekordbox = true;
+                    detected.rekordbox_dir = Some(pioneer_dir);
+                } else if pioneer_base.is_dir() {
+                    detected.has_rekordbox = true;
+                    detected.rekordbox_dir = Some(pioneer_base);
+                } else if rekordbox_xml.is_file() {
+                    detected.has_rekordbox = true;
+                    detected.rekordbox_xml = Some(rekordbox_xml);
+                } else if let Ok(entries) = std::fs::read_dir(dir) {
+                    for entry in entries.flatten() {
+                        let name = entry.file_name().to_string_lossy().to_lowercase();
+                        if name == "pioneer" && entry.path().is_dir() {
+                            detected.has_rekordbox = true;
+                            detected.rekordbox_dir = Some(entry.path());
+                            break;
+                        } else if name == "rekordbox" && entry.path().is_dir() {
+                            detected.has_rekordbox = true;
+                            detected.rekordbox_dir = Some(entry.path());
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if is_mount_boundary(dir) {
+                break;
+            }
+            curr = dir.parent();
         }
 
         detected

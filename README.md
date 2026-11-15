@@ -12,10 +12,10 @@ No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar el in
 
 | Plataforma | Arquitectura | Instalador Listo para Usar |
 | :--- | :--- | :--- |
-| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Descargar Dedupp v0.2.0 (.dmg)**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.2.0_aarch64.dmg) |
+| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Descargar Dedupp v0.3.0 (.dmg)**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) |
 
 ### Cómo instalar en macOS:
-1. Haz clic en el enlace para descargar [**Dedupp_0.2.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.2.0_aarch64.dmg) (o encuéntralo en la carpeta `dist/` del repositorio).
+1. Haz clic en el enlace para descargar [**Dedupp_0.3.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) (o encuéntralo en la carpeta `dist/` del repositorio).
 2. Abre el archivo `.dmg` con doble clic.
 3. Arrastra **Dedupp** a tu carpeta de **Aplicaciones**.
 4. ¡Listo! Ya puedes abrir Dedupp desde Spotlight (`Cmd + Espacio`), Launchpad o tu Dock.

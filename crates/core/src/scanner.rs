@@ -107,14 +107,16 @@ impl Scanner {
             let pdb_tracks = rkb_db.get_tracks_map();
             let count = pdb_tracks.len();
             rekordbox_map = pdb_tracks;
+            let msg = if count > 0 {
+                format!("💿 Base de datos de exportación CDJ/Pioneer (export.pdb) leída ({} pistas)", count)
+            } else {
+                "💿 Base de datos de exportación CDJ/Pioneer detectada en la unidad".to_string()
+            };
             on_progress(ScanProgress {
                 current: 0,
                 total: 0,
                 current_file: String::new(),
-                log_message: Some(format!(
-                    "💿 Base de datos de exportación CDJ/Pioneer (export.pdb) leída ({} pistas)",
-                    count
-                )),
+                log_message: Some(msg),
             });
         }
         if let Some(xml_path) = &dj_libs.rekordbox_xml {

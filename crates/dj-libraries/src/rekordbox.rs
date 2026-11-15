@@ -116,15 +116,60 @@ impl RekordboxPdbDatabase {
         }
     }
 
-    /// Detecta la ruta de `export.pdb` a partir de la raíz de la unidad USB
+    /// Detecta la ruta de `export.pdb` o la base de datos de Rekordbox a partir de cualquier carpeta o subcarpeta de la unidad USB
     pub fn find_in_drive<P: AsRef<Path>>(drive_root: P) -> Option<Self> {
-        let root = drive_root.as_ref();
-        let candidate = root.join("PIONEER").join("rekordbox").join("export.pdb");
-        if candidate.is_file() {
-            Some(Self::new(candidate, root))
-        } else {
-            None
+        let start = drive_root.as_ref();
+        let mut curr = Some(start);
+
+        while let Some(dir) = curr {
+            let candidate1 = dir.join("PIONEER").join("rekordbox").join("export.pdb");
+            if candidate1.is_file() {
+                return Some(Self::new(candidate1, dir));
+            }
+            let candidate2 = dir.join("PIONEER").join("rekordbox").join("exportExt.pdb");
+            if candidate2.is_file() {
+                return Some(Self::new(candidate2, dir));
+            }
+            let candidate3 = dir.join("rekordbox").join("export.pdb");
+            if candidate3.is_file() {
+                return Some(Self::new(candidate3, dir));
+            }
+
+            // Búsqueda case-insensitive para soportar distintas estructuras de directorios FAT32/exFAT
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let name = entry.file_name().to_string_lossy().to_lowercase();
+                    if name == "pioneer" && entry.path().is_dir() {
+                        let sub_p = entry.path().join("rekordbox").join("export.pdb");
+                        if sub_p.is_file() {
+                            return Some(Self::new(sub_p, dir));
+                        }
+                        if let Ok(sub_entries) = std::fs::read_dir(entry.path()) {
+                            for sub_entry in sub_entries.flatten() {
+                                if sub_entry.file_name().to_string_lossy().to_lowercase() == "rekordbox" && sub_entry.path().is_dir() {
+                                    let p_check = sub_entry.path().join("export.pdb");
+                                    if p_check.is_file() {
+                                        return Some(Self::new(p_check, dir));
+                                    }
+                                }
+                            }
+                        }
+                    } else if name == "rekordbox" && entry.path().is_dir() {
+                        let sub_p = entry.path().join("export.pdb");
+                        if sub_p.is_file() {
+                            return Some(Self::new(sub_p, dir));
+                        }
+                    }
+                }
+            }
+
+            if crate::is_mount_boundary(dir) {
+                break;
+            }
+            curr = dir.parent();
         }
+
+        None
     }
 
     /// Obtiene el total de canciones registradas en la base de datos de exportación
@@ -622,6 +667,15 @@ mod tests {
         std::fs::copy(fixture_path, &test_pdb).unwrap();
 
         let mut db_mgr = RekordboxPdbDatabase::new(&test_pdb, &temp_dir);
+
+        // Probar que find_in_drive encuentra export.pdb desde una subcarpeta
+        let pioneer_sub = temp_dir.join("PIONEER").join("rekordbox");
+        let _ = std::fs::create_dir_all(&pioneer_sub);
+        let _ = std::fs::copy(fixture_path, pioneer_sub.join("export.pdb"));
+        let deep_folder = temp_dir.join("Music").join("Tech_House");
+        let _ = std::fs::create_dir_all(&deep_folder);
+        let found_from_sub = RekordboxPdbDatabase::find_in_drive(&deep_folder);
+        assert!(found_from_sub.is_some(), "Debe encontrar Rekordbox desde subcarpeta");
 
         let db_raw = Database::from_file(&test_pdb).unwrap();
         println!("db_raw tracks: {}, playlists: {}, entries: {}", db_raw.tracks.len(), db_raw.playlist_tree.len(), db_raw.playlist_entries.len());

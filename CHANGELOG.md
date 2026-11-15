@@ -6,6 +6,29 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
+## [0.3.0] - 2026-11-15
+### Añadido
+- **Selector Multi-idioma en Ajustes (i18n)**:
+  - Soporte completo para 3 idiomas: Español (🇪🇸), Inglés (🇬🇧) y Francés (🇫🇷).
+  - Traducción integral de la interfaz: barra de herramientas, controles, estadísticas, estados vacíos, diálogos de confirmación, modales de Engine DJ y Rekordbox, etiquetas y panel de preferencias.
+  - Persistencia de la preferencia de idioma en el almacenamiento local con cambio reactivo instantáneo.
+
+### Corregido & Mejorado
+- **Detección de librerías DJ desde subcarpetas**:
+  - Tanto Engine DJ (`m.db`) como Pioneer CDJ / Rekordbox (`export.pdb`, `exportExt.pdb`, `exportLibrary.db`) se detectan de forma ascendente desde cualquier subcarpeta seleccionada hasta el punto de montaje del disco.
+  - Los botones de mantenimiento *"Limpiar Engine DJ"* y *"Cabina Rekordbox"* ahora se activan automáticamente sin importar qué subdirectorio de música esté seleccionado.
+- **Eliminación del botón "Restablecer a raíz"**:
+  - Al funcionar la detección de librerías DJ en cualquier subcarpeta, se ha eliminado el botón redundante de restablecer a raíz (`#btn-reset-drive`) para simplificar la interfaz.
+- **Texto de purga unificado a "Limpiar colección"**:
+  - El botón de confirmación de purga tanto en Engine DJ como en Rekordbox muestra ahora el texto unificado *"Limpiar colección"*.
+- **Spinner de progreso en análisis de duplicados**:
+  - El indicador de actividad giratorio (`.mac-spinner`) en el panel de progreso ahora se oculta inmediatamente cuando concluye el análisis de duplicados o en caso de cancelación/error.
+- **Detección simultánea de librerías duales en USB**:
+  - Resuelto el problema por el cual en unidades USB con librerías de Engine DJ y Rekordbox a la vez sólo se reconocía una de ellas.
+  - Las unidades de almacenamiento con estructuras de DJ (`Engine Library`, `PIONEER`) tienen ahora prioridad en el desplegable de unidades.
+
+---
+
 ## [0.2.0] - 2026-11-15
 ### Añadido
 - **Integración para Cabina Pioneer / Rekordbox (`export.pdb` & `exportExt.pdb`)**:

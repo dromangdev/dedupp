@@ -150,6 +150,22 @@ fn list_available_drives() -> Vec<DriveItem> {
         });
     }
 
+    // Priorizar unidades que contengan colecciones DJ (Engine Library, PIONEER, Serato) y unidades USB
+    drives.sort_by_key(|d| {
+        let p = Path::new(&d.path);
+        let has_dj = p.join("Engine Library").exists()
+            || p.join("PIONEER").exists()
+            || p.join("pioneer").exists()
+            || p.join("_Serato_").exists();
+        if has_dj {
+            0
+        } else if d.is_usb {
+            1
+        } else {
+            2
+        }
+    });
+
     drives
 }
 
@@ -479,16 +495,17 @@ fn check_rekordbox_status(root_dir: String) -> RekordboxStatusInfo {
             missing_tracks_count: missing_count,
         }
     } else {
-        let p_dir = p.join("PIONEER").join("rekordbox");
-        let has_dir = p_dir.is_dir();
+        let dj_libs = DetectedLibraries::detect_in_root(p);
+        let has_rekordbox = dj_libs.has_rekordbox;
+        let pdb_path = dj_libs
+            .rekordbox_dir
+            .map(|d| d.to_string_lossy().to_string())
+            .or_else(|| dj_libs.rekordbox_xml.map(|x| x.to_string_lossy().to_string()));
+
         RekordboxStatusInfo {
-            has_rekordbox: has_dir,
+            has_rekordbox,
             is_running,
-            pdb_path: if has_dir {
-                Some(p_dir.to_string_lossy().to_string())
-            } else {
-                None
-            },
+            pdb_path,
             total_tracks: 0,
             missing_tracks_count: 0,
         }
