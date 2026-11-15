@@ -7,8 +7,11 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 ---
 
 ## [Unreleased]
+### Corregido
+- **Ventana macOS**: Solucionado el problema que impedía mover la ventana arrastrándola desde la barra superior en macOS (habilitado permiso `core:window:allow-start-dragging` en el sistema de capacidades de Tauri v2, configurado `data-tauri-drag-region="deep"` y añadido manejador programático nativo).
+
 ### Próximos cambios planificados
-- Mejoras continuas y nuevas integraciones.
+- Módulo de análisis y limpieza de playlists huérfanas para Pioneer Rekordbox (bases `export.pdb` y `master.db`).
 
 ---
 

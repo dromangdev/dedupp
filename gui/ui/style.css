@@ -75,7 +75,8 @@ body {
   -webkit-backdrop-filter: blur(25px) saturate(180%);
   border-bottom: 1px solid var(--mac-separator);
   user-select: none;
-  -webkit-app-region: drag;
+  -webkit-user-select: none;
+  cursor: default;
   z-index: 100;
 }
 
@@ -83,7 +84,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  -webkit-app-region: drag;
+  pointer-events: none; /* Permite que el mousedown pase a la región de arrastre */
 }
 
 .logo-icon {
@@ -121,7 +122,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  -webkit-app-region: no-drag;
+  pointer-events: auto;
 }
 
 /* macOS Segmented Control para Bases de Datos DJ */

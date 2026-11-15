@@ -1556,6 +1556,49 @@ async function initApp() {
   }
 
   await loadDrives();
+  initWindowDragging();
+}
+
+// Soporte de arrastre de ventana nativo en macOS
+function initWindowDragging() {
+  const topHeader = document.querySelector(".top-header");
+  if (!topHeader) return;
+
+  topHeader.addEventListener("mousedown", async (e) => {
+    // Solo botón izquierdo del ratón
+    if (e.button !== 0) return;
+
+    // Ignorar si se hace clic en botones, selectores u otros elementos interactivos
+    if (e.target.closest("button, select, input, a, .mac-segment, .mac-toolbar-btn, .modal-close-btn, [data-tauri-drag-region='false']")) {
+      return;
+    }
+
+    // En doble clic, alternar maximizado nativo
+    if (e.detail === 2) {
+      if (window.__TAURI_INTERNALS__ && typeof window.__TAURI_INTERNALS__.invoke === "function") {
+        try {
+          await window.__TAURI_INTERNALS__.invoke("plugin:window|internal_toggle_maximize");
+        } catch (_) {}
+      }
+      return;
+    }
+
+    // Iniciar arrastre programático garantizado en macOS
+    try {
+      if (window.__TAURI__ && window.__TAURI__.window && typeof window.__TAURI__.window.getCurrentWindow === "function") {
+        const appWin = window.__TAURI__.window.getCurrentWindow();
+        if (appWin && typeof appWin.startDragging === "function") {
+          await appWin.startDragging();
+          return;
+        }
+      }
+      if (window.__TAURI_INTERNALS__ && typeof window.__TAURI_INTERNALS__.invoke === "function") {
+        await window.__TAURI_INTERNALS__.invoke("plugin:window|start_dragging");
+      }
+    } catch (err) {
+      console.debug("startDragging:", err);
+    }
+  });
 }
 
 window.addEventListener("DOMContentLoaded", initApp);
