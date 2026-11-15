@@ -12,10 +12,10 @@ No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar el in
 
 | Plataforma | Arquitectura | Instalador Listo para Usar |
 | :--- | :--- | :--- |
-| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Descargar Dedupp v0.1.0 (.dmg)**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.1.0_aarch64.dmg) |
+| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Descargar Dedupp v0.3.0 (.dmg)**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) |
 
 ### Cómo instalar en macOS:
-1. Haz clic en el enlace para descargar [**Dedupp_0.1.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.1.0_aarch64.dmg) (o encuéntralo en la carpeta `dist/` del repositorio).
+1. Haz clic en el enlace para descargar [**Dedupp_0.3.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) (o encuéntralo en la carpeta `dist/` del repositorio).
 2. Abre el archivo `.dmg` con doble clic.
 3. Arrastra **Dedupp** a tu carpeta de **Aplicaciones**.
 4. ¡Listo! Ya puedes abrir Dedupp desde Spotlight (`Cmd + Espacio`), Launchpad o tu Dock.
@@ -29,14 +29,20 @@ No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar el in
    - Ponderación avanzada por frecuencia de muestreo (96 kHz / 48 kHz vs 44.1 kHz) y profundidad de bits (24-bit vs 16-bit).
    - En caso de empate en calidad técnica, desempata automáticamente por la versión más reciente (`mtime`).
 
-2. **Integración Completa con Software de DJ**:
+2. **Integración Completa con Software de DJ y Cabinas**:
+   - 💿 **Pioneer Rekordbox (Cabina CDJ / XDJ - `export.pdb` & `exportExt.pdb`)**:
+     - **Prevención de *"TRACK NOT FOUND"* en Cabina**: Inspecciona directamente la base de datos DeviceSQL del pendrive/disco USB de Rekordbox y localiza pistas faltantes o enlaces rotos antes de llegar al club o evento.
+     - **Re-vinculación Atómica de Playlists**: Sustituye automáticamente en las listas del USB las pistas duplicadas eliminadas por la versión ganadora de mayor calidad a nivel de bytes, sin perder cues ni orden.
+     - **Purga Segura de Huérfanas**: Limpia los registros de pistas desaparecidas con copias de seguridad fechadas (`export.pdb.backup_*`).
+     - **Detección de Proceso Activo**: Comprueba si `rekordbox.app` está abierto para prevenir escrituras concurrentes.
+     - **Panel Exclusivo en GUI**: Botón rápido *"Cabina Rekordbox"* en la barra de herramientas, contador en vivo y modal con vista previa de listas afectadas.
    - 🎧 **Engine DJ (Denon DJ / Engine OS)**:
      - **Mantenimiento y Purga de Pistas Rojas**: Detecta y elimina pistas huérfanas en la base de datos `m.db` cuyos archivos físicos han desaparecido.
      - **Re-vinculación Inteligente de Playlists**: Reemplaza automáticamente las pistas duplicadas eliminadas por la versión conservada de alta calidad, evitando huecos rotos y manteniendo el orden secuencial (`nextEntityId`).
      - **Copias de Seguridad Automáticas**: Genera respaldos fechados (`m.db.backup_*`) antes de cualquier escritura.
      - **Detección de Proceso Activo**: Protege la integridad de la base de datos avisando si Engine DJ está en ejecución.
    - 🎚️ **Serato DJ**: Lee subcrates (`_Serato_/Subcrates/*.crate`) y detecta etiquetas de cues ID3 directas (`GEOB:Serato Markers_`).
-   - 💿 **Rekordbox (Pioneer / AlphaTheta)**: Detecta exportaciones estándar USB (`PIONEER/rekordbox`) y parsea colecciones `rekordbox.xml`.
+   - 📂 **Colecciones Rekordbox XML**: Parsea archivos `rekordbox.xml` exportados para proteger temas con Hot Cues y Memory Cues.
 
 3. **Prevención de Falsos Positivos (Tolerancia de Duración)**:
    - Los temas con duraciones distintas jamás se confunden: un *Radio Edit* (3 min) y un *Extended Mix* (7 min) del mismo artista y título se conservan automáticamente gracias a un margen configurable ($\pm 3.5$ segundos por defecto).
@@ -138,6 +144,17 @@ El proyecto cuenta con una suite completa de pruebas unitarias que verifican la 
 ```bash
 cargo test
 ```
+
+---
+
+## 🔀 Flujo de Versionado y Desarrollo
+
+El proyecto sigue [SemVer](https://semver.org/lang/es/) y el flujo de ramas de Git Flow:
+
+- **`main`**: Rama de producción exclusiva para versiones estables y etiquetadas (`vX.Y.Z`). No se hacen commits directos sobre `main`.
+- **`develop`**: Rama principal de desarrollo donde se integran las nuevas características y correcciones antes de publicar una versión.
+- **`feature/*` / `fix/*`**: Ramas de trabajo para cambios específicos.
+- **Historial de cambios**: Cada nueva versión debe registrarse detalladamente en [`CHANGELOG.md`](CHANGELOG.md) antes del merge a `main`.
 
 ---
 

@@ -100,21 +100,48 @@ impl EngineDjDatabase {
         }
     }
 
-    /// Busca la base de datos de Engine DJ en una unidad USB o carpeta raíz
+    /// Busca la base de datos de Engine DJ en una unidad USB o carpeta, ascendiendo por los directorios padres si se seleccionó una subcarpeta
     pub fn find_in_root<P: AsRef<Path>>(root: P) -> Option<Self> {
-        let root = root.as_ref();
-        let db1 = root.join("Engine Library").join("Database2").join("m.db");
-        if db1.is_file() {
-            return Some(Self::new(db1));
+        let start = root.as_ref();
+        let mut curr = Some(start);
+
+        while let Some(dir) = curr {
+            let db1 = dir.join("Engine Library").join("Database2").join("m.db");
+            if db1.is_file() {
+                return Some(Self::new(db1));
+            }
+            let db2 = dir.join("Database2").join("m.db");
+            if db2.is_file() {
+                return Some(Self::new(db2));
+            }
+            let db3 = dir.join("Engine Library").join("m.db");
+            if db3.is_file() {
+                return Some(Self::new(db3));
+            }
+
+            // Búsqueda case-insensitive para compatibilidad con distintos formatos de disco
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let name = entry.file_name().to_string_lossy().to_lowercase();
+                    if name == "engine library" && entry.path().is_dir() {
+                        let c1 = entry.path().join("Database2").join("m.db");
+                        if c1.is_file() {
+                            return Some(Self::new(c1));
+                        }
+                        let c2 = entry.path().join("m.db");
+                        if c2.is_file() {
+                            return Some(Self::new(c2));
+                        }
+                    }
+                }
+            }
+
+            if crate::is_mount_boundary(dir) {
+                break;
+            }
+            curr = dir.parent();
         }
-        let db2 = root.join("Database2").join("m.db");
-        if db2.is_file() {
-            return Some(Self::new(db2));
-        }
-        let db3 = root.join("Engine Library").join("m.db");
-        if db3.is_file() {
-            return Some(Self::new(db3));
-        }
+
         None
     }
 
@@ -536,6 +563,12 @@ mod tests {
         conn.execute("INSERT INTO PerformanceData (trackId) VALUES (2)", []).unwrap();
 
         let engine_db = EngineDjDatabase::find_in_root(&dir).expect("Debe encontrar la base de datos");
+
+        // Comprobar que también la encuentra desde una subcarpeta
+        let subfolder = dir.join("Music").join("Deep_House");
+        std::fs::create_dir_all(&subfolder).unwrap();
+        let engine_sub = EngineDjDatabase::find_in_root(&subfolder).expect("Debe encontrar la base de datos desde subcarpeta");
+        assert_eq!(engine_sub.db_path, engine_db.db_path);
 
         // 1. Escanear pistas rojas/huérfanas
         let missing = engine_db.scan_missing_tracks().unwrap();

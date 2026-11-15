@@ -15,7 +15,7 @@ enum CriterionArg {
 #[derive(Parser, Debug)]
 #[command(name = "dedupp")]
 #[command(author = "Dedupp Team")]
-#[command(version = "0.1.0")]
+#[command(version)]
 #[command(about = "Encuentra y gestiona canciones duplicadas en USBs y discos protegiendo librerías DJ (Engine DJ, Serato, Rekordbox)", long_about = None)]
 struct Cli {
     /// Ruta de la unidad USB o carpeta a escanear
@@ -161,6 +161,34 @@ fn main() {
                 println!("   - {} archivos movidos a la carpeta segura:", manifest.items.len());
                 println!("     {}/.dedupp_quarantine/{}", cli.path.display(), manifest.timestamp);
                 println!("   - Puedes restaurar cualquier archivo en cualquier momento revisando 'manifest.json'.");
+
+                let mut pairs = Vec::new();
+                for dec in &decisions {
+                    let win = dec.keep.path.clone();
+                    for d in &dec.discard {
+                        pairs.push((win.clone(), d.track.path.clone()));
+                    }
+                }
+
+                // Sincronizar playlists de Rekordbox / Cabina Pioneer si está presente
+                if let Some(mut rkb) = dj_libraries::rekordbox::RekordboxPdbDatabase::find_in_drive(&cli.path) {
+                    match rkb.relink_and_purge_duplicates(&pairs) {
+                        Ok(res) if res.relinked_playlists_count > 0 => {
+                            println!("   - 💿 Cabina Rekordbox (export.pdb): {} playlists re-vinculadas al tema ganador.", res.relinked_playlists_count);
+                        }
+                        _ => {}
+                    }
+                }
+
+                // Sincronizar playlists de Engine DJ si está presente
+                if let Some(engine_db) = dj_libraries::engine_dj::EngineDjDatabase::find_in_root(&cli.path) {
+                    match engine_db.relink_and_purge_duplicates(&pairs) {
+                        Ok(res) if res.relinked_playlists_count > 0 || res.purged_count > 0 => {
+                            println!("   - 🎧 Engine DJ (m.db): {} playlists re-vinculadas y {} pistas purgadas.", res.relinked_playlists_count, res.purged_count);
+                        }
+                        _ => {}
+                    }
+                }
             }
         }
         Err(e) => {
