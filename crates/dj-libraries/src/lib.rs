@@ -2,6 +2,11 @@ pub mod engine_dj;
 pub mod rekordbox;
 pub mod serato;
 
+pub use rekordbox::{
+    is_rekordbox_running, RekordboxCleanupResult, RekordboxInspector, RekordboxMissingTrack,
+    RekordboxPdbDatabase, RekordboxStatusInfo, RekordboxTrackInfo,
+};
+
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 

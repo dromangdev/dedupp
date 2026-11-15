@@ -5,6 +5,10 @@ use dedupp_core::{
 use dj_libraries::engine_dj::{
     is_engine_dj_running, EngineCleanupResult, EngineDjDatabase, MissingEngineTrack,
 };
+use dj_libraries::rekordbox::{
+    is_rekordbox_running, RekordboxCleanupResult, RekordboxMissingTrack, RekordboxPdbDatabase,
+    RekordboxStatusInfo,
+};
 use dj_libraries::DetectedLibraries;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -457,6 +461,126 @@ async fn sync_engine_duplicates(
     .map_err(|e| format!("Error en hilo de fondo: {}", e))?
 }
 
+#[tauri::command]
+fn check_rekordbox_status(root_dir: String) -> RekordboxStatusInfo {
+    let p = Path::new(&root_dir);
+    let is_running = is_rekordbox_running();
+    if let Some(rkb_db) = RekordboxPdbDatabase::find_in_drive(p) {
+        let total_tracks = rkb_db.total_tracks();
+        let missing_count = match rkb_db.get_missing_tracks() {
+            Ok(m) => m.len(),
+            Err(_) => 0,
+        };
+        RekordboxStatusInfo {
+            has_rekordbox: true,
+            is_running,
+            pdb_path: Some(rkb_db.pdb_path.to_string_lossy().to_string()),
+            total_tracks,
+            missing_tracks_count: missing_count,
+        }
+    } else {
+        let p_dir = p.join("PIONEER").join("rekordbox");
+        let has_dir = p_dir.is_dir();
+        RekordboxStatusInfo {
+            has_rekordbox: has_dir,
+            is_running,
+            pdb_path: if has_dir {
+                Some(p_dir.to_string_lossy().to_string())
+            } else {
+                None
+            },
+            total_tracks: 0,
+            missing_tracks_count: 0,
+        }
+    }
+}
+
+#[tauri::command]
+async fn get_rekordbox_missing_tracks(
+    root_dir: String,
+) -> Result<Vec<RekordboxMissingTrack>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let p = Path::new(&root_dir);
+        let rkb = RekordboxPdbDatabase::find_in_drive(p).ok_or_else(|| {
+            format!(
+                "No se encontró base de datos Rekordbox (export.pdb) en {}",
+                root_dir
+            )
+        })?;
+
+        rkb.get_missing_tracks()
+            .map_err(|e| format!("Error escaneando pistas rojas de Rekordbox: {}", e))
+    })
+    .await
+    .map_err(|e| format!("Error en hilo de fondo: {}", e))?
+}
+
+#[tauri::command]
+async fn purge_rekordbox_missing_tracks(
+    root_dir: String,
+    track_ids: Option<Vec<u32>>,
+) -> Result<RekordboxCleanupResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        if is_rekordbox_running() {
+            return Err("Rekordbox está abierto en este momento. Ciérralo completamente para poder purgar las pistas de forma segura sin corromper la base de datos de cabina.".to_string());
+        }
+
+        let p = Path::new(&root_dir);
+        let mut rkb = RekordboxPdbDatabase::find_in_drive(p).ok_or_else(|| {
+            format!(
+                "No se encontró ninguna base de datos Rekordbox (export.pdb) en {}",
+                root_dir
+            )
+        })?;
+
+        let ids_to_purge = match track_ids {
+            Some(ids) if !ids.is_empty() => ids,
+            _ => {
+                let missing = rkb
+                    .get_missing_tracks()
+                    .map_err(|e| format!("Error identificando pistas rojas de Rekordbox: {}", e))?;
+                missing.into_iter().map(|m| m.id).collect()
+            }
+        };
+
+        rkb.purge_missing_tracks(&ids_to_purge)
+            .map_err(|e| format!("Error al purgar pistas de Rekordbox: {}", e))
+    })
+    .await
+    .map_err(|e| format!("Error en hilo de fondo: {}", e))?
+}
+
+#[tauri::command]
+async fn sync_rekordbox_duplicates(
+    root_dir: String,
+    decisions: Vec<DedupeDecision>,
+) -> Result<RekordboxCleanupResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        if is_rekordbox_running() {
+            return Err("Rekordbox está abierto en este momento. Ciérralo completamente para poder sincronizar las listas y pistas de cabina de forma segura.".to_string());
+        }
+
+        let p = Path::new(&root_dir);
+        let mut rkb = match RekordboxPdbDatabase::find_in_drive(p) {
+            Some(db) => db,
+            None => return Ok(RekordboxCleanupResult::default()),
+        };
+
+        let mut pairs = Vec::new();
+        for dec in decisions {
+            let win_path = dec.keep.path;
+            for discard_item in dec.discard {
+                pairs.push((win_path.clone(), discard_item.track.path));
+            }
+        }
+
+        rkb.relink_and_purge_duplicates(&pairs)
+            .map_err(|e| format!("Error al sincronizar Rekordbox: {}", e))
+    })
+    .await
+    .map_err(|e| format!("Error en hilo de fondo: {}", e))?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -474,7 +598,11 @@ pub fn run() {
             check_engine_status,
             get_engine_missing_tracks,
             purge_engine_missing_tracks,
-            sync_engine_duplicates
+            sync_engine_duplicates,
+            check_rekordbox_status,
+            get_rekordbox_missing_tracks,
+            purge_rekordbox_missing_tracks,
+            sync_rekordbox_duplicates
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

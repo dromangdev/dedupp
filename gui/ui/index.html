@@ -42,6 +42,14 @@
           <span>Limpiar Engine DJ</span>
           <span id="engine-toolbar-count" class="mac-badge-count">0</span>
         </button>
+        <button id="btn-rekordbox-clean" class="mac-btn mac-toolbar-btn mac-btn-rekordbox" style="display: none;" title="Gestionar exportación CDJ/Pioneer y limpiar pistas huérfanas en cabina">
+          <svg class="mac-svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>Cabina Rekordbox</span>
+          <span id="rekordbox-toolbar-count" class="mac-badge-count">0</span>
+        </button>
         <button id="btn-open-settings" class="mac-btn mac-toolbar-btn" title="Configuración y Efectos de Sonido">
           <svg class="mac-svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
@@ -306,6 +314,18 @@
           </label>
         </div>
 
+        <!-- Opción de Sincronización Automática con Rekordbox / Cabina Pioneer -->
+        <div class="rekordbox-sync-card" id="rekordbox-sync-card" style="display: none;">
+          <label class="mac-checkbox engine-sync-label">
+            <input type="checkbox" id="check-sync-rekordbox" checked />
+            <span class="mac-checkbox-custom"></span>
+            <div class="rekordbox-sync-desc">
+              <strong>💿 Sincronizar playlists de Cabina Pioneer / Rekordbox (Recomendado)</strong>
+              <p>Re-vincula las playlists de <code>export.pdb</code> hacia el tema conservado para que sigan reproduciéndose sin errores "TRACK NOT FOUND" en CDJs.</p>
+            </div>
+          </label>
+        </div>
+
         <!-- Barra de Progreso Interna durante el traslado -->
         <div class="modal-progress-wrap" id="modal-action-progress" style="display: none;">
           <div class="modal-progress-header">
@@ -488,6 +508,101 @@
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
           </svg>
           <span id="btn-confirm-purge-text">Eliminar Pistas Rojas de Engine DJ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Limpieza y Mantenimiento Rekordbox / Cabina Pioneer -->
+  <div class="modal-backdrop" id="rekordbox-modal" style="display: none;">
+    <div class="modal-dialog engine-dialog rekordbox-dialog">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span class="modal-icon rekordbox-icon">💿</span>
+          <div class="engine-modal-titles">
+            <h3>Mantenimiento de Cabina Pioneer / Rekordbox</h3>
+            <span class="engine-modal-subtitle">Limpieza de pistas inexistentes en USB (export.pdb) para evitar errores "TRACK NOT FOUND" en CDJs</span>
+          </div>
+        </div>
+        <button id="btn-x-rekordbox" class="modal-close-btn" title="Cerrar (Esc)">✕</button>
+      </div>
+
+      <div class="modal-body engine-modal-body">
+        <!-- Alerta si Rekordbox está en ejecución -->
+        <div class="engine-alert-box engine-alert-danger" id="rekordbox-running-alert" style="display: none;">
+          <span class="engine-alert-icon">⚠️</span>
+          <div class="engine-alert-content">
+            <strong>Rekordbox está abierto en tu ordenador</strong>
+            <p>Para proteger la base de datos de exportación <code>export.pdb</code> en el USB, <strong>cierra Rekordbox</strong> antes de purgar las pistas de cabina. Al terminar, la base de datos estará limpia y optimizada.</p>
+            <button id="btn-recheck-rekordbox-running" class="btn btn-secondary btn-sm">Comprobar de nuevo</button>
+          </div>
+        </div>
+
+        <!-- Resumen de estado de Rekordbox -->
+        <div class="engine-db-summary">
+          <div class="engine-summary-card">
+            <span class="engine-stat-label">Base de Datos de Cabina (DeviceSQL):</span>
+            <code class="engine-db-path" id="rekordbox-db-path-text">-</code>
+          </div>
+          <div class="engine-summary-stats">
+            <div class="engine-stat-pill engine-stat-red">
+              <span class="stat-number" id="rekordbox-missing-count">0</span>
+              <span class="stat-desc">Pistas huérfanas en cabina (Error CDJ)</span>
+            </div>
+            <div class="engine-stat-pill engine-stat-info">
+              <span class="stat-number" id="rekordbox-total-tracks">0</span>
+              <span class="stat-desc">Pistas totales registradas en <code>export.pdb</code></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista previa de pistas huérfanas de cabina -->
+        <div class="engine-tracks-preview">
+          <div class="engine-tracks-header">
+            <h4>Pistas con archivo ausente en disco (darían error en CDJ/XDJ):</h4>
+            <span id="rekordbox-tracks-count-label" class="badge-tag">0 pistas</span>
+          </div>
+          <div class="engine-tracks-table-wrap" id="rekordbox-tracks-table-wrap">
+            <table class="mac-table engine-table">
+              <thead>
+                <tr>
+                  <th style="width: 45%;">Título / Archivo</th>
+                  <th style="width: 25%;">Artista</th>
+                  <th style="width: 30%;">Playlists de Cabina Afectadas</th>
+                </tr>
+              </thead>
+              <tbody id="rekordbox-tracks-tbody">
+                <tr><td colspan="3" class="engine-empty-td">Buscando pistas huérfanas en la base de datos Pioneer...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Barra de progreso durante la purga -->
+        <div class="modal-progress-wrap" id="rekordbox-purge-progress" style="display: none;">
+          <div class="modal-progress-header">
+            <span id="rekordbox-purge-file">Purgando entradas huérfanas de export.pdb...</span>
+            <strong id="rekordbox-purge-pct">0%</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="rekordbox-purge-bar" style="width: 0%;"></div>
+          </div>
+          <div class="modal-progress-count" id="rekordbox-purge-count">Procesando...</div>
+        </div>
+
+        <div class="engine-safety-note">
+          🛡️ <strong>100% Seguro:</strong> Se genera automáticamente una copia de seguridad <code>export.pdb.backup_*</code> antes de cualquier modificación. Los reproductores CDJ/XDJ leerán las listas sin interrupciones ni pantallas rojas.
+        </div>
+      </div>
+
+      <div class="modal-footer" id="rekordbox-modal-footer">
+        <button id="btn-cancel-rekordbox" class="btn btn-secondary">Cerrar</button>
+        <button id="btn-confirm-purge-rekordbox" class="btn btn-danger">
+          <svg class="mac-svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span id="btn-confirm-purge-rekordbox-text">Limpiar Pistas Huérfanas de Cabina</span>
         </button>
       </div>
     </div>

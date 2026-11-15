@@ -98,8 +98,33 @@ const enginePurgeCount = document.getElementById("engine-purge-count");
 const engineSyncCard = document.getElementById("engine-sync-card");
 const checkSyncEngine = document.getElementById("check-sync-engine");
 
+// Elementos de Rekordbox / Cabina Pioneer
+const btnRekordboxClean = document.getElementById("btn-rekordbox-clean");
+const rekordboxToolbarCount = document.getElementById("rekordbox-toolbar-count");
+const rekordboxModal = document.getElementById("rekordbox-modal");
+const btnXRekordbox = document.getElementById("btn-x-rekordbox");
+const btnCancelRekordbox = document.getElementById("btn-cancel-rekordbox");
+const btnConfirmPurgeRekordbox = document.getElementById("btn-confirm-purge-rekordbox");
+const btnConfirmPurgeRekordboxText = document.getElementById("btn-confirm-purge-rekordbox-text");
+const rekordboxRunningAlert = document.getElementById("rekordbox-running-alert");
+const btnRecheckRekordboxRunning = document.getElementById("btn-recheck-rekordbox-running");
+const rekordboxDbPathText = document.getElementById("rekordbox-db-path-text");
+const rekordboxMissingCount = document.getElementById("rekordbox-missing-count");
+const rekordboxTotalTracks = document.getElementById("rekordbox-total-tracks");
+const rekordboxTracksCountLabel = document.getElementById("rekordbox-tracks-count-label");
+const rekordboxTracksTbody = document.getElementById("rekordbox-tracks-tbody");
+const rekordboxPurgeProgress = document.getElementById("rekordbox-purge-progress");
+const rekordboxPurgeFile = document.getElementById("rekordbox-purge-file");
+const rekordboxPurgePct = document.getElementById("rekordbox-purge-pct");
+const rekordboxPurgeBar = document.getElementById("rekordbox-purge-bar");
+const rekordboxPurgeCount = document.getElementById("rekordbox-purge-count");
+const rekordboxSyncCard = document.getElementById("rekordbox-sync-card");
+const checkSyncRekordbox = document.getElementById("check-sync-rekordbox");
+
 let currentEngineStatus = { has_engine_dj: false, is_running: false, db_path: null };
 let currentEngineMissingTracks = [];
+let currentRekordboxStatus = { has_rekordbox: false, is_running: false, pdb_path: null, total_tracks: 0, missing_tracks_count: 0 };
+let currentRekordboxMissingTracks = [];
 
 let currentDiskTotalBytes = 0;
 let savedSettingsSnapshot = null;
@@ -608,6 +633,7 @@ async function loadDrives(preselectPath = null) {
       if (btnResetDrive) btnResetDrive.style.display = "none";
       updateStorageWidget(defaultVal);
       checkEngineDjStatus(defaultVal);
+      checkRekordboxStatus(defaultVal);
     }
 
     appendLog(`Unidades detectadas: ${drives.map(d => d.label).join(", ")}`);
@@ -625,6 +651,7 @@ driveSelect.addEventListener("change", () => {
   btnResetDrive.style.display = "none";
   updateStorageWidget(currentRootPath);
   checkEngineDjStatus(currentRootPath);
+  checkRekordboxStatus(currentRootPath);
 });
 
 // Botón volver a escanear toda la unidad (en caso de haber elegido una subcarpeta)
@@ -636,6 +663,7 @@ btnResetDrive.addEventListener("click", () => {
   appendLog(`Ruta activa restablecida a la raíz: ${currentRootPath}`);
   updateStorageWidget(currentRootPath);
   checkEngineDjStatus(currentRootPath);
+  checkRekordboxStatus(currentRootPath);
 });
 
 // Botón refrescar unidades USB
@@ -678,6 +706,7 @@ btnBrowseFolder.addEventListener("click", async () => {
       appendLog(`Subcarpeta seleccionada para escaneo: ${selected}`, true);
       updateStorageWidget(selected);
       checkEngineDjStatus(selected);
+      checkRekordboxStatus(selected);
     } else {
       statusMsg.innerText = "Selección cancelada.";
     }
@@ -1016,6 +1045,13 @@ btnApplyQuarantine.addEventListener("click", () => {
       engineSyncCard.style.display = "none";
     }
   }
+  if (rekordboxSyncCard) {
+    if (currentRekordboxStatus && currentRekordboxStatus.has_rekordbox) {
+      rekordboxSyncCard.style.display = "block";
+    } else {
+      rekordboxSyncCard.style.display = "none";
+    }
+  }
   modalActionProgress.style.display = "none";
   modalInfoBox.style.display = "block";
   if (modalBtnOpenTrash) modalBtnOpenTrash.style.display = "none";
@@ -1041,6 +1077,7 @@ btnApplyQuarantine.addEventListener("click", () => {
     const selectedMode = radioTrash.checked ? "trash" : "quarantine";
     const modeName = selectedMode === "trash" ? "la Papelera del Sistema" : "la Carpeta de Cuarentena";
     const shouldSyncEngine = checkSyncEngine && checkSyncEngine.checked && currentEngineStatus && currentEngineStatus.has_engine_dj;
+    const shouldSyncRekordbox = checkSyncRekordbox && checkSyncRekordbox.checked && currentRekordboxStatus && currentRekordboxStatus.has_rekordbox;
 
     // Si se va a sincronizar con Engine DJ, verificar primero si la aplicación está abierta
     if (shouldSyncEngine) {
@@ -1059,9 +1096,27 @@ btnApplyQuarantine.addEventListener("click", () => {
       }
     }
 
+    // Si se va a sincronizar con Rekordbox, verificar primero si la aplicación está abierta
+    if (shouldSyncRekordbox) {
+      try {
+        const status = await invoke("check_rekordbox_status", { rootDir: currentRootPath });
+        if (status.is_running) {
+          showNoticeModal({
+            title: "Rekordbox está en ejecución",
+            icon: "⚠️",
+            text: "Por favor <strong>cierra la aplicación Rekordbox</strong> en tu Mac antes de continuar para que podamos sincronizar las listas de cabina en <code>export.pdb</code> de forma segura.",
+          });
+          return;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
     // Pasar el modal a modo progreso
     modalModeOptions.style.display = "none";
     if (engineSyncCard) engineSyncCard.style.display = "none";
+    if (rekordboxSyncCard) rekordboxSyncCard.style.display = "none";
     modalInfoBox.style.display = "none";
     modalActionProgress.style.display = "block";
     modalActionBar.style.width = "0%";
@@ -1108,14 +1163,35 @@ btnApplyQuarantine.addEventListener("click", () => {
         }
       }
 
+      // Sincronización inteligente con Rekordbox / Cabina Pioneer
+      let rekordboxSyncResult = null;
+      if (shouldSyncRekordbox) {
+        modalActionFile.innerText = "Sincronizando playlists en export.pdb de Cabina Pioneer...";
+        try {
+          rekordboxSyncResult = await invoke("sync_rekordbox_duplicates", {
+            rootDir: currentRootPath,
+            decisions: currentDecisions,
+          });
+          if (rekordboxSyncResult) {
+            appendLog(`💿 Cabina Pioneer / Rekordbox: ${rekordboxSyncResult.relinked_playlists_count} pistas re-vinculadas en playlists de export.pdb. Respaldo: ${rekordboxSyncResult.backup_path}`, true);
+          }
+        } catch (e) {
+          console.warn("Error en sync_rekordbox_duplicates:", e);
+          appendLog(`⚠️ Advertencia al sincronizar Rekordbox: ${e}`, true);
+        }
+      }
+
       statusMsg.innerText = `Completado: ${movedCount} archivos (${bytesFreed}) procesados.`;
 
       // Reproducir el efecto de sonido configurado
       playDedupeSound();
 
-      let engineDetailHtml = "";
+      let djDetailHtml = "";
       if (engineSyncResult && (engineSyncResult.relinked_playlists_count > 0 || engineSyncResult.purged_count > 0)) {
-        engineDetailHtml = `<br>🎧 <strong>Engine DJ sincronizado:</strong> ${engineSyncResult.relinked_playlists_count} temas re-vinculados en playlists y ${engineSyncResult.purged_count} pistas descartadas eliminadas de <code>m.db</code> (no aparecerán en rojo).`;
+        djDetailHtml += `<br>🎧 <strong>Engine DJ sincronizado:</strong> ${engineSyncResult.relinked_playlists_count} temas re-vinculados en playlists y ${engineSyncResult.purged_count} pistas descartadas eliminadas de <code>m.db</code>.`;
+      }
+      if (rekordboxSyncResult && rekordboxSyncResult.relinked_playlists_count > 0) {
+        djDetailHtml += `<br>💿 <strong>Cabina Rekordbox sincronizada:</strong> ${rekordboxSyncResult.relinked_playlists_count} temas re-vinculados en playlists de <code>export.pdb</code> (listas de cabina intactas).`;
       }
 
       // Modal de éxito
@@ -1125,7 +1201,7 @@ btnApplyQuarantine.addEventListener("click", () => {
         text: `Se han trasladado <strong>${movedCount.toLocaleString()} archivos</strong> (<strong>${bytesFreed} recuperados</strong>) a <strong>${escapeHtml(destSummary)}</strong>.`,
         detail1: (selectedMode === "trash"
           ? `📦 <strong>Ubicación en Papelera:</strong> Todos los archivos se han agrupado en una sola carpeta para mantener tu papelera organizada.<br>🗑️ <strong>Para recuperar los ${bytesFreed}:</strong> Vacía la Papelera de tu Mac con la unidad conectada.<br><button id="btn-open-trash-link" class="btn btn-secondary" style="margin-top: 8px; font-size: 12px; padding: 5px 12px; cursor: pointer;">📂 Abrir Papelera en Finder</button>`
-          : `📁 <strong>Carpeta protegida:</strong> <code>${escapeHtml(destSummary)}</code>`) + engineDetailHtml,
+          : `📁 <strong>Carpeta protegida:</strong> <code>${escapeHtml(destSummary)}</code>`) + djDetailHtml,
         detail2: `Las versiones de mejor calidad y todos tus datos DJ siguen en su lugar.`,
         showOpenTrash: selectedMode === "trash",
       });
@@ -1256,6 +1332,11 @@ document.addEventListener("keydown", (e) => {
       if (enginePurgeProgress && enginePurgeProgress.style.display === "none") {
         e.preventDefault();
         closeEngineModal();
+      }
+    } else if (rekordboxModal && rekordboxModal.style.display !== "none") {
+      if (rekordboxPurgeProgress && rekordboxPurgeProgress.style.display === "none") {
+        e.preventDefault();
+        closeRekordboxModal();
       }
     } else if (customModal && customModal.style.display !== "none") {
       if (modalActionProgress && modalActionProgress.style.display === "none") {
@@ -1524,6 +1605,241 @@ if (btnConfirmPurgeEngine) {
         title: "Error al modificar Engine DJ",
         icon: "❌",
         text: `No se pudieron purgar las pistas de Engine DJ: ${escapeHtml(String(err))}`,
+      });
+    }
+  });
+}
+
+// ==========================================================================
+// Integración con Rekordbox / Cabina Pioneer (export.pdb)
+// ==========================================================================
+
+async function checkRekordboxStatus(rootPath) {
+  if (!rootPath) return;
+  try {
+    const status = await invoke("check_rekordbox_status", { rootDir: rootPath });
+    currentRekordboxStatus = status;
+
+    if (status.has_rekordbox) {
+      badgeRekordbox.classList.add("active");
+      badgeRekordbox.style.cursor = "pointer";
+      if (btnRekordboxClean) btnRekordboxClean.style.display = "inline-flex";
+      loadRekordboxMissingSummary(rootPath);
+    } else {
+      badgeRekordbox.classList.remove("active");
+      badgeRekordbox.style.cursor = "default";
+      if (btnRekordboxClean) btnRekordboxClean.style.display = "none";
+      if (rekordboxToolbarCount) rekordboxToolbarCount.style.display = "none";
+    }
+  } catch (err) {
+    console.warn("Error al comprobar estado de Rekordbox:", err);
+  }
+}
+
+async function loadRekordboxMissingSummary(rootPath) {
+  if (!rootPath) return;
+  try {
+    const missing = await invoke("get_rekordbox_missing_tracks", { rootDir: rootPath });
+    currentRekordboxMissingTracks = missing || [];
+
+    if (rekordboxToolbarCount) {
+      if (currentRekordboxMissingTracks.length > 0) {
+        rekordboxToolbarCount.innerText = currentRekordboxMissingTracks.length > 999 
+          ? `${(currentRekordboxMissingTracks.length / 1000).toFixed(1)}k`
+          : currentRekordboxMissingTracks.length;
+        rekordboxToolbarCount.style.display = "inline-flex";
+        btnRekordboxClean.title = `Cabina Rekordbox: ${currentRekordboxMissingTracks.length.toLocaleString()} pistas huérfanas en export.pdb. Clic para limpiar.`;
+      } else {
+        rekordboxToolbarCount.style.display = "none";
+        btnRekordboxClean.title = "Cabina Rekordbox: Base de datos de exportación sincronizada (0 pistas huérfanas)";
+      }
+    }
+  } catch (err) {
+    console.warn("Error leyendo pistas rojas de Rekordbox:", err);
+  }
+}
+
+async function openRekordboxModal() {
+  if (!currentRootPath) return;
+  rekordboxModal.style.display = "flex";
+  rekordboxDbPathText.innerText = currentRekordboxStatus.pdb_path || "export.pdb";
+  rekordboxPurgeProgress.style.display = "none";
+
+  try {
+    const status = await invoke("check_rekordbox_status", { rootDir: currentRootPath });
+    currentRekordboxStatus = status;
+    if (status.is_running) {
+      rekordboxRunningAlert.style.display = "flex";
+      btnConfirmPurgeRekordbox.disabled = true;
+    } else {
+      rekordboxRunningAlert.style.display = "none";
+      btnConfirmPurgeRekordbox.disabled = false;
+    }
+    if (rekordboxTotalTracks) {
+      rekordboxTotalTracks.innerText = (status.total_tracks || 0).toLocaleString();
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+
+  rekordboxTracksTbody.innerHTML = `<tr><td colspan="3" class="engine-empty-td">Buscando pistas huérfanas en Rekordbox / export.pdb...</td></tr>`;
+  rekordboxMissingCount.innerText = "...";
+  rekordboxTracksCountLabel.innerText = "...";
+
+  try {
+    const missing = await invoke("get_rekordbox_missing_tracks", { rootDir: currentRootPath });
+    currentRekordboxMissingTracks = missing || [];
+    const count = currentRekordboxMissingTracks.length;
+
+    rekordboxMissingCount.innerText = count.toLocaleString();
+    rekordboxTracksCountLabel.innerText = `${count.toLocaleString()} pistas`;
+
+    if (btnConfirmPurgeRekordboxText) {
+      btnConfirmPurgeRekordboxText.innerText = count > 0 
+        ? `Limpiar ${count.toLocaleString()} Pistas Huérfanas de Cabina` 
+        : `Limpiar Pistas de Cabina`;
+    }
+
+    if (count === 0) {
+      rekordboxTracksTbody.innerHTML = `<tr><td colspan="3" class="engine-empty-td" style="color: var(--apple-green);">✨ ¡Todo listo para pinchar! No hay pistas huérfanas ni desaparecidas en tu base de datos Pioneer CDJ.</td></tr>`;
+      btnConfirmPurgeRekordbox.disabled = true;
+      return;
+    }
+
+    if (!currentRekordboxStatus.is_running) {
+      btnConfirmPurgeRekordbox.disabled = false;
+    }
+
+    const previewList = currentRekordboxMissingTracks.slice(0, 250);
+    let html = "";
+    previewList.forEach(t => {
+      const plBadges = t.in_playlists && t.in_playlists.length > 0
+        ? t.in_playlists.map(pl => `<span class="engine-pl-badge">${escapeHtml(pl)}</span>`).join(" ")
+        : `<span style="color: #888; font-size: 10.5px;">(Solo en Colección)</span>`;
+
+      html += `
+        <tr>
+          <td>
+            <strong class="engine-track-title">${escapeHtml(t.title || t.filename || "Sin título")}</strong>
+            <span class="engine-track-file">${escapeHtml(t.filename || t.pdb_path)}</span>
+          </td>
+          <td>${escapeHtml(t.artist || "Desconocido")}</td>
+          <td>${plBadges}</td>
+        </tr>
+      `;
+    });
+
+    if (count > 250) {
+      html += `<tr><td colspan="3" class="engine-empty-td">... y ${count - 250} pistas más en la base de datos.</td></tr>`;
+    }
+
+    rekordboxTracksTbody.innerHTML = html;
+  } catch (err) {
+    console.error("Error al cargar pistas en modal de Rekordbox:", err);
+    rekordboxTracksTbody.innerHTML = `<tr><td colspan="3" class="engine-empty-td" style="color: var(--apple-red);">Error al leer pistas: ${escapeHtml(String(err))}</td></tr>`;
+  }
+}
+
+function closeRekordboxModal() {
+  if (rekordboxPurgeProgress && rekordboxPurgeProgress.style.display !== "none") return;
+  rekordboxModal.style.display = "none";
+}
+
+if (btnRekordboxClean) {
+  btnRekordboxClean.addEventListener("click", openRekordboxModal);
+}
+
+if (badgeRekordbox) {
+  badgeRekordbox.addEventListener("click", () => {
+    if (currentRekordboxStatus && currentRekordboxStatus.has_rekordbox) {
+      openRekordboxModal();
+    }
+  });
+}
+
+if (btnXRekordbox) btnXRekordbox.addEventListener("click", closeRekordboxModal);
+if (btnCancelRekordbox) btnCancelRekordbox.addEventListener("click", closeRekordboxModal);
+
+if (btnRecheckRekordboxRunning) {
+  btnRecheckRekordboxRunning.addEventListener("click", async () => {
+    btnRecheckRekordboxRunning.innerText = "Comprobando...";
+    try {
+      const status = await invoke("check_rekordbox_status", { rootDir: currentRootPath });
+      currentRekordboxStatus = status;
+      if (status.is_running) {
+        rekordboxRunningAlert.style.display = "flex";
+        btnConfirmPurgeRekordbox.disabled = true;
+      } else {
+        rekordboxRunningAlert.style.display = "none";
+        btnConfirmPurgeRekordbox.disabled = currentRekordboxMissingTracks.length === 0;
+      }
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      btnRecheckRekordboxRunning.innerText = "Comprobar de nuevo";
+    }
+  });
+}
+
+if (btnConfirmPurgeRekordbox) {
+  btnConfirmPurgeRekordbox.addEventListener("click", async () => {
+    if (currentRekordboxMissingTracks.length === 0) return;
+
+    const status = await invoke("check_rekordbox_status", { rootDir: currentRootPath });
+    if (status.is_running) {
+      rekordboxRunningAlert.style.display = "flex";
+      btnConfirmPurgeRekordbox.disabled = true;
+      return;
+    }
+
+    const count = currentRekordboxMissingTracks.length;
+    btnConfirmPurgeRekordbox.disabled = true;
+    btnCancelRekordbox.disabled = true;
+    rekordboxPurgeProgress.style.display = "block";
+    rekordboxPurgeBar.style.width = "40%";
+    rekordboxPurgePct.innerText = "Purgando...";
+    rekordboxPurgeCount.innerText = `Purgando ${count.toLocaleString()} entradas en export.pdb...`;
+
+    try {
+      appendLog(`💿 Iniciando purga de ${count} pistas huérfanas en export.pdb (${currentRootPath})...`, true);
+      const res = await invoke("purge_rekordbox_missing_tracks", {
+        rootDir: currentRootPath,
+        trackIds: null,
+      });
+
+      rekordboxPurgeBar.style.width = "100%";
+      rekordboxPurgePct.innerText = "100%";
+
+      // Reproducir sonido de confirmación
+      playDedupeSound();
+
+      appendLog(`✅ ¡Purga de Rekordbox completada! ${res.purged_count} pistas eliminadas. Respaldo creado en: ${res.backup_path}`, true);
+
+      closeRekordboxModal();
+      rekordboxPurgeProgress.style.display = "none";
+      btnConfirmPurgeRekordbox.disabled = false;
+      btnCancelRekordbox.disabled = false;
+
+      showNoticeModal({
+        title: "¡Pistas Huérfanas de Cabina Limpiadas!",
+        icon: "🎉",
+        text: `Se han eliminado <strong>${res.purged_count.toLocaleString()} entradas de listas huérfanas</strong> de tu base de datos de exportación CDJ/Pioneer.`,
+        detail1: `🛡️ <strong>Copia de seguridad previa guardada en:</strong><br><code>${escapeHtml(res.backup_path || "export.pdb.backup")}</code>`,
+        detail2: `Al conectar este USB en cualquier reproductor Pioneer (CDJ-2000NXS, CDJ-3000, XDJ-XZ, etc.), las listas cargarán sin errores "TRACK NOT FOUND" ni pantallas rojas.`,
+      });
+
+      // Refrescar contador
+      loadRekordboxMissingSummary(currentRootPath);
+    } catch (err) {
+      console.error("Error al purgar Rekordbox:", err);
+      rekordboxPurgeProgress.style.display = "none";
+      btnConfirmPurgeRekordbox.disabled = false;
+      btnCancelRekordbox.disabled = false;
+      appendLog(`❌ Error al purgar Rekordbox: ${err}`, true);
+      showNoticeModal({
+        title: "Error al modificar Rekordbox",
+        icon: "❌",
+        text: `No se pudieron purgar las pistas de Rekordbox: ${escapeHtml(String(err))}`,
       });
     }
   });

@@ -1,6 +1,6 @@
 use crate::audio::AudioMetadata;
 use dj_libraries::engine_dj::EngineDjDatabase;
-use dj_libraries::rekordbox::RekordboxInspector;
+use dj_libraries::rekordbox::{RekordboxInspector, RekordboxPdbDatabase};
 use dj_libraries::serato::SeratoInspector;
 use dj_libraries::{DetectedLibraries, TrackDjInfo};
 use rayon::prelude::*;
@@ -103,10 +103,26 @@ impl Scanner {
         }
 
         let mut rekordbox_map = HashMap::new();
+        if let Some(rkb_db) = RekordboxPdbDatabase::find_in_drive(&self.root_path) {
+            let pdb_tracks = rkb_db.get_tracks_map();
+            let count = pdb_tracks.len();
+            rekordbox_map = pdb_tracks;
+            on_progress(ScanProgress {
+                current: 0,
+                total: 0,
+                current_file: String::new(),
+                log_message: Some(format!(
+                    "💿 Base de datos de exportación CDJ/Pioneer (export.pdb) leída ({} pistas)",
+                    count
+                )),
+            });
+        }
         if let Some(xml_path) = &dj_libs.rekordbox_xml {
             let rkb = RekordboxInspector::new(dj_libs.rekordbox_dir.as_ref(), Some(xml_path));
             if let Ok(tracks) = rkb.parse_xml() {
-                rekordbox_map = tracks;
+                for (k, v) in tracks {
+                    rekordbox_map.entry(k).or_insert(v);
+                }
             }
         }
 

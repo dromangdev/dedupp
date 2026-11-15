@@ -6,12 +6,23 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [Unreleased]
-### Corregido
-- **Ventana macOS**: Solucionado el problema que impedía mover la ventana arrastrándola desde la barra superior en macOS (habilitado permiso `core:window:allow-start-dragging` en el sistema de capacidades de Tauri v2, configurado `data-tauri-drag-region="deep"` y añadido manejador programático nativo).
+## [0.2.0] - 2026-11-15
+### Añadido
+- **Integración para Cabina Pioneer / Rekordbox (`export.pdb` & `exportExt.pdb`)**:
+  - Soporte nativo y seguro para el formato DeviceSQL de pendrives y discos USB exportados para reproductores Pioneer CDJ / XDJ (CDJ-2000NXS2, CDJ-3000, XDJ-XZ, XDJ-RX3, OPUS-QUAD, etc.).
+  - Detección precisa de pistas inexistentes en disco que causan el error *"TRACK NOT FOUND"* / *"LOAD ERROR"* en los reproductores de la cabina.
+  - Re-vinculación atómica en playlists de Rekordbox: cuando Dedupp elimina o pone en cuarentena un duplicado de menor calidad, las listas de reproducción del USB son actualizadas a nivel de bytes para apuntar al ID de la pista conservada.
+  - Purga segura de pistas huérfanas en el USB: actualización de máscaras de bits DeviceSQL y conteos de cabecera de página para que los CDJs ignoren limpiamente las pistas eliminadas sin corromper el árbol de playlists.
+  - Copias de seguridad automáticas fechadas (`export.pdb.backup_YYYYMMDD_HHMMSS`) previas a cualquier escritura en el USB.
+  - Comprobación en segundo plano de procesos activos (`rekordbox.app`) para prevenir bloqueos o escrituras concurrentes.
+  - Interfaz de usuario dedicada: botón de acceso rápido *"Cabina Rekordbox"* en la barra de herramientas con contador dinámico de advertencias, modal de inspección previa con tabla de temas y playlists afectadas, barra de progreso y botón de purga segura.
+  - Integración en el modal de deduplicación: opción de sincronizar y revincular automáticamente el USB de Rekordbox al aplicar la limpieza.
+  - Integración con el CLI (`dedupp --apply`) para sincronizar `export.pdb` en modo consola.
+- **Protección de Cues de Rekordbox en el Core**:
+  - El escáner identifica pistas catalogadas en `export.pdb` para protegerlas bajo la política `--protect-cues`.
 
-### Próximos cambios planificados
-- Módulo de análisis y limpieza de playlists huérfanas para Pioneer Rekordbox (bases `export.pdb` y `master.db`).
+### Corregido
+- **Ventana macOS**: Solucionado el problema que impedía mover la ventana arrastrándola desde la barra superior en macOS (habilitado permiso `core:window:allow-start-dragging` y `core:window:allow-start-resize-dragging` en el sistema de capacidades de Tauri v2, configurado `data-tauri-drag-region="deep"`, ajustado CSS para delegar eventos y añadido manejador programático nativo).
 
 ---
 
