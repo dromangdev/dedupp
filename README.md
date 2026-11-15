@@ -1,8 +1,8 @@
-# 🎧 DJ Dedupe
+# 🎧 Dedupp
 
-**DJ Dedupe** es una aplicación de alto rendimiento desarrollada en **Rust** para detectar, clasificar y limpiar canciones duplicadas en unidades USB, discos duros y librerías de música profesional, protegiendo la integridad de colecciones y metadatos de DJ (**Engine DJ, Serato y Rekordbox**).
+**Dedupp** es una aplicación de alto rendimiento desarrollada en **Rust** para detectar, clasificar y limpiar canciones duplicadas en unidades USB, discos duros y librerías de música profesional, protegiendo la integridad de colecciones y metadatos de DJ (**Engine DJ, Serato y Rekordbox**).
 
-Cuenta con una **Interfaz Gráfica de Escritorio (Desktop GUI con Tauri v2)** inspirada en macOS dark theme y una **Línea de Comandos (CLI)** rápida y eficiente. Es totalmente multiplataforma (**macOS y Windows**).
+Cuenta con una **Interfaz Gráfica de Escritorio (Desktop GUI con Tauri v2)** con diseño nativo de macOS dark theme y una **Línea de Comandos (CLI)** rápida y eficiente. Es totalmente multiplataforma (**macOS y Windows**).
 
 ---
 
@@ -27,11 +27,11 @@ Cuenta con una **Interfaz Gráfica de Escritorio (Desktop GUI con Tauri v2)** in
 
 4. **Eliminación Segura y Reversible**:
    - **Papelera del Sistema**: Agrupa todos los archivos eliminados en una única carpeta fechada dentro de la Papelera, manteniendo el sistema limpio y permitiendo recuperar espacio real en disco al vaciarla.
-   - **Carpeta de Cuarentena**: Aísla los archivos en `.dj_dedupe_quarantine/` junto con un archivo `manifest.json` para rollback completo.
+   - **Carpeta de Cuarentena**: Aísla los archivos en `.dedupp_quarantine/` junto con un archivo `manifest.json` para rollback completo.
    - **Exportación a CSV**: Genera informes detallados para auditoría antes o después de la limpieza.
 
 5. **Experiencia de Usuario macOS & Efectos de Audio**:
-   - Diseño moderno con paleta oscura nativa de macOS, tipografía San Francisco y soporte totalmente responsive para pantallas pequeñas.
+   - Diseño moderno con paleta oscura nativa de macOS, tipografía San Francisco y soporte totalmente responsive para ventanas de cualquier tamaño.
    - Widget interactivo de almacenamiento de disco (espacio libre vs ocupado y cálculo en tiempo real de GB recuperables).
    - Efectos de sonido configurables con Web Audio API y audio nativo (Papelera clásica de macOS, Vinyl Scratch DJ, Airhorn, Marimba armónica y Arcade Pop).
 
@@ -40,7 +40,7 @@ Cuenta con una **Interfaz Gráfica de Escritorio (Desktop GUI con Tauri v2)** in
 ## 📂 Estructura del Proyecto
 
 ```text
-dj-dedupe/
+Dedupp/
 ├── Cargo.toml                  # Workspace raíz de Cargo
 ├── Cargo.lock                  # Bloqueo reproducible de dependencias
 ├── crates/
@@ -69,7 +69,7 @@ dj-dedupe/
 Para ejecutar la aplicación de escritorio en modo desarrollo:
 
 ```bash
-cd dj-dedupe
+cd Dedupp
 ./run-gui.sh
 ```
 
@@ -91,22 +91,26 @@ cargo tauri build
 
 #### Modo Simulación (por defecto, solo lectura y previsualización):
 ```bash
-cargo run -p dj-dedupe-cli -- /Volumes/MI_USB_DJ
+cargo run -p dedupp-cli -- /Volumes/MI_USB_DJ
+```
+O usando el script directo:
+```bash
+./run-cli.sh /Volumes/MI_USB_DJ
 ```
 
 #### Seleccionar criterio de versión más reciente:
 ```bash
-cargo run -p dj-dedupe-cli -- /Volumes/MI_USB_DJ --criterion latest
+cargo run -p dedupp-cli -- /Volumes/MI_USB_DJ --criterion latest
 ```
 
 #### Exportar un informe detallado a CSV:
 ```bash
-cargo run -p dj-dedupe-cli -- /Volumes/MI_USB_DJ --export-csv informe_duplicados.csv
+cargo run -p dedupp-cli -- /Volumes/MI_USB_DJ --export-csv informe_duplicados.csv
 ```
 
 #### Ejecutar la limpieza real (mover a cuarentena segura):
 ```bash
-cargo run -p dj-dedupe-cli -- /Volumes/MI_USB_DJ --apply
+cargo run -p dedupp-cli -- /Volumes/MI_USB_DJ --apply
 ```
 
 ---
