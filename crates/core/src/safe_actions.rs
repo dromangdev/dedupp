@@ -31,7 +31,7 @@ pub enum ActionError {
 pub enum EliminationMode {
     /// Envía a la papelera nativa del sistema operativo (permite liberar espacio al vaciarla)
     Trash,
-    /// Mueve a la subcarpeta oculta de cuarentena en la propia unidad (.dj_dedupe_quarantine)
+    /// Mueve a la subcarpeta oculta de cuarentena en la propia unidad (.dedupp_quarantine)
     Quarantine,
 }
 
@@ -229,7 +229,7 @@ impl SafeActionExecutor {
         
         let quarantine_base = self
             .root_dir
-            .join(".dj_dedupe_quarantine")
+            .join(".dedupp_quarantine")
             .join(&timestamp_str);
 
         let trash_folder_name = format!("Duplicados Eliminados DJ [{}]", timestamp_display);

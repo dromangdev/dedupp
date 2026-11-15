@@ -11,6 +11,7 @@ Thumbs.db
 .vscode/
 
 # Local data & temporary outputs
+.dedupp_quarantine/
 .dj_dedupe_quarantine/
 *.csv
 *.backup_*

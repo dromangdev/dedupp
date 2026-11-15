@@ -118,7 +118,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 name = "app"
 version = "0.1.0"
 dependencies = [
- "dj-dedupe-core",
+ "dedupp-core",
  "dj-libraries",
  "libc",
  "log",
@@ -687,6 +687,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "dedupp-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dedupp-core",
+ "dj-libraries",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "dedupp-core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dj-libraries",
+ "libc",
+ "lofty",
+ "log",
+ "rayon",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.21",
+ "trash",
+ "walkdir",
+]
+
+[[package]]
 name = "deranged"
 version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -768,37 +799,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.10",
-]
-
-[[package]]
-name = "dj-dedupe-cli"
-version = "0.1.0"
-dependencies = [
- "clap",
- "dj-dedupe-core",
- "dj-libraries",
- "log",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "dj-dedupe-core"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "dj-libraries",
- "libc",
- "lofty",
- "log",
- "rayon",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 2.0.21",
- "trash",
- "walkdir",
 ]
 
 [[package]]

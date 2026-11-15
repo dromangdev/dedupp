@@ -141,7 +141,7 @@ function applySettingsToForm(settings) {
 
 function loadSettingsFromStorage() {
   try {
-    const saved = localStorage.getItem("dj_dedupe_settings");
+    const saved = localStorage.getItem("dedupp_settings") || localStorage.getItem("dj_dedupe_settings");
     if (saved) {
       const parsed = JSON.parse(saved);
       soundSettings = { ...soundSettings, ...parsed };
@@ -155,7 +155,7 @@ function loadSettingsFromStorage() {
 
 function saveSettingsToStorage() {
   try {
-    localStorage.setItem("dj_dedupe_settings", JSON.stringify(soundSettings));
+    localStorage.setItem("dedupp_settings", JSON.stringify(soundSettings));
   } catch (e) {
     console.warn("No se pudieron guardar ajustes:", e);
   }

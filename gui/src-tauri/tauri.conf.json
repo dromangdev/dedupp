@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "dj-dedupe",
+  "productName": "dedupp",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.dedupp.app",
   "build": {
     "frontendDist": "../ui"
   },
@@ -11,7 +11,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "DJ Dedupe - Limpiador Inteligente de Colecciones DJ",
+        "title": "Dedupp - Limpiador Inteligente de Colecciones DJ",
         "width": 1100,
         "height": 750,
         "minWidth": 720,

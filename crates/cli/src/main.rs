@@ -1,5 +1,5 @@
 use clap::{Parser, ValueEnum};
-use dj_dedupe_core::{
+use dedupp_core::{
     group_duplicates, DecisionEngine, DedupeCriterion, SafeActionExecutor, Scanner,
 };
 use std::path::PathBuf;
@@ -13,8 +13,8 @@ enum CriterionArg {
 }
 
 #[derive(Parser, Debug)]
-#[command(name = "dj-dedupe")]
-#[command(author = "DJ Dedupe Team")]
+#[command(name = "dedupp")]
+#[command(author = "Dedupp Team")]
 #[command(version = "0.1.0")]
 #[command(about = "Encuentra y gestiona canciones duplicadas en USBs y discos protegiendo librerías DJ (Engine DJ, Serato, Rekordbox)", long_about = None)]
 struct Cli {
@@ -52,7 +52,7 @@ fn main() {
     let is_dry_run = if cli.apply { false } else { cli.dry_run };
 
     println!("============================================================");
-    println!("🎧 DJ Dedupe v0.1.0 - Limpiador Inteligente de Canciones");
+    println!("🎧 Dedupp v0.1.0 - Limpiador Inteligente de Canciones");
     println!("============================================================");
     println!("📂 Escaneando ruta: {}", cli.path.display());
     println!("⚙️  Criterio de selección: {:?}", cli.criterion);
@@ -159,7 +159,7 @@ fn main() {
                 println!("------------------------------------------------------------");
                 println!("✅ Limpieza ejecutada con éxito.");
                 println!("   - {} archivos movidos a la carpeta segura:", manifest.items.len());
-                println!("     {}/.dj_dedupe_quarantine/{}", cli.path.display(), manifest.timestamp);
+                println!("     {}/.dedupp_quarantine/{}", cli.path.display(), manifest.timestamp);
                 println!("   - Puedes restaurar cualquier archivo en cualquier momento revisando 'manifest.json'.");
             }
         }

@@ -1,17 +1,17 @@
 [package]
-name = "dj-dedupe-cli"
+name = "dedupp-cli"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "dj-dedupe"
+name = "dedupp"
 path = "src/main.rs"
 
 [dependencies]
 clap.workspace = true
-dj-dedupe-core = { path = "../core" }
+dedupp-core = { path = "../core" }
 dj-libraries = { path = "../dj-libraries" }
 serde.workspace = true
 serde_json.workspace = true

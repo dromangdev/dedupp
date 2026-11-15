@@ -1,5 +1,5 @@
 [package]
-name = "dj-dedupe-core"
+name = "dedupp-core"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

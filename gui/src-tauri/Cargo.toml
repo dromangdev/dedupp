@@ -24,6 +24,6 @@ log = "0.4"
 tauri = { version = "2.12.5" }
 tauri-plugin-log = "2"
 rfd = "0.18"
-dj-dedupe-core = { path = "../../crates/core" }
+dedupp-core = { path = "../../crates/core" }
 dj-libraries = { path = "../../crates/dj-libraries" }
 libc = { workspace = true }

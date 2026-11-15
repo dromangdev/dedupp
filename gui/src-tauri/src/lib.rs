@@ -1,4 +1,4 @@
-use dj_dedupe_core::{
+use dedupp_core::{
     group_duplicates, DecisionEngine, DedupeCriterion, DedupeDecision, DiskSpaceInfo,
     DuplicateGroup, SafeActionExecutor, Scanner,
 };
@@ -261,12 +261,12 @@ async fn apply_quarantine(
     decisions: Vec<DedupeDecision>,
     mode: String,
     dry_run: bool,
-) -> Result<dj_dedupe_core::ExecutionResult, String> {
+) -> Result<dedupp_core::ExecutionResult, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let elim_mode = if mode == "trash" {
-            dj_dedupe_core::EliminationMode::Trash
+            dedupp_core::EliminationMode::Trash
         } else {
-            dj_dedupe_core::EliminationMode::Quarantine
+            dedupp_core::EliminationMode::Quarantine
         };
 
         let executor = SafeActionExecutor::new(&root_dir, dry_run);
