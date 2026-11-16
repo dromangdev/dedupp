@@ -488,13 +488,12 @@ fn play_system_sound(#[allow(unused_variables)] sound_name: String) -> Result<()
     }
     #[cfg(target_os = "windows")]
     {
-        extern "system" {
+        unsafe extern "system" {
             fn MessageBeep(uType: u32) -> i32;
         }
         unsafe {
             MessageBeep(0);
         }
-        return Ok(());
     }
     #[cfg(target_os = "linux")]
     {
