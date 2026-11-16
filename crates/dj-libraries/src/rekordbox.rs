@@ -72,10 +72,11 @@ pub fn is_rekordbox_running() -> bool {
     }
     #[cfg(target_os = "windows")]
     {
-        if let Ok(output) = std::process::Command::new("tasklist")
-            .args(["/NH", "/FO", "CSV"])
-            .output()
-        {
+        use std::os::windows::process::CommandExt;
+        let mut cmd = std::process::Command::new("tasklist");
+        cmd.args(["/NH", "/FO", "CSV"]);
+        cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+        if let Ok(output) = cmd.output() {
             let out_str = String::from_utf8_lossy(&output.stdout).to_lowercase();
             if out_str.contains("rekordbox.exe") {
                 return true;

@@ -402,12 +402,13 @@ fn play_system_sound(sound_name: String) -> Result<(), String> {
     }
     #[cfg(target_os = "windows")]
     {
-        if sound_name == "trash" || sound_name == "pop" {
-            let _ = std::process::Command::new("powershell")
-                .arg("-c")
-                .arg("[System.Media.SystemSounds]::Asterisk.Play()")
-                .spawn();
+        extern "system" {
+            fn MessageBeep(uType: u32) -> i32;
         }
+        unsafe {
+            MessageBeep(0);
+        }
+        return Ok(());
     }
     Ok(())
 }
