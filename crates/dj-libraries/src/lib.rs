@@ -23,8 +23,26 @@ pub fn is_mount_boundary(path: &Path) -> bool {
         if path.parent().is_none() {
             return true;
         }
+        if let Some(std::path::Component::Prefix(_)) = path.components().next() {
+            if path.components().count() <= 2 {
+                return true;
+            }
+        }
     }
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(target_os = "linux")]
+    {
+        if path == Path::new("/")
+            || path == Path::new("/media")
+            || path == Path::new("/mnt")
+            || path == Path::new("/run/media")
+            || path == Path::new("/home")
+            || path.parent() == Some(Path::new("/media"))
+            || path.parent() == Some(Path::new("/run/media"))
+        {
+            return true;
+        }
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     {
         if path == Path::new("/") || path == Path::new("/mnt") || path == Path::new("/media") {
             return true;

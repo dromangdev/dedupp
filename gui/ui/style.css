@@ -80,6 +80,12 @@ body {
   z-index: 100;
 }
 
+/* En Windows y Linux no hay semáforos a la izquierda, espaciado uniforme */
+.platform-windows .top-header,
+.platform-linux .top-header {
+  padding: 0 16px;
+}
+
 .brand {
   display: flex;
   align-items: center;

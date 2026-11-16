@@ -2,23 +2,50 @@
 
 **Dedupp** es una aplicación de alto rendimiento desarrollada en **Rust** para detectar, clasificar y limpiar canciones duplicadas en unidades USB, discos duros y librerías de música profesional, protegiendo la integridad de colecciones y metadatos de DJ (**Engine DJ, Serato y Rekordbox**).
 
-Cuenta con una **Interfaz Gráfica de Escritorio (Desktop GUI con Tauri v2)** con diseño nativo de macOS dark theme y una **Línea de Comandos (CLI)** rápida y eficiente. Es totalmente multiplataforma (**macOS y Windows**).
+Cuenta con una **Interfaz Gráfica de Escritorio (Desktop GUI con Tauri v2)** con diseño nativo de tema oscuro adaptativo y una **Línea de Comandos (CLI)** ultrarrápida. Es totalmente multiplataforma (**macOS, Windows y Linux**).
 
 ---
 
 ## 📥 Descarga e Instalación Directa (Sin compilar)
 
-No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar el instalador oficial y comenzar a usarlo de inmediato:
+No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar los instaladores oficiales y comenzar a usarlo de inmediato:
 
-| Plataforma | Arquitectura | Instalador Listo para Usar |
-| :--- | :--- | :--- |
-| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Descargar Dedupp v0.3.0 (.dmg)**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) |
+| Plataforma | Arquitectura | Paquete / Instalador | Estado |
+| :--- | :--- | :--- | :--- |
+| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Descargar Dedupp v0.3.0 (.dmg)**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) | ✅ Estable |
+| 🪟 **Windows** (Windows 10 / 11 de 64 bits) | `x64` | [📦 **Descargar Instalador (.exe)**](https://github.com/dromangdev/dedupp/releases) / [📦 **MSI (.msi)**](https://github.com/dromangdev/dedupp/releases) | 🚀 Generado en CI / Releases |
+| 🐧 **Linux** (Ubuntu, Debian, Fedora, Arch) | `x64` | [📦 **Descargar .AppImage**](https://github.com/dromangdev/dedupp/releases) / [📦 **Paquete .deb**](https://github.com/dromangdev/dedupp/releases) | 🚀 Generado en CI / Releases |
 
-### Cómo instalar en macOS:
-1. Haz clic en el enlace para descargar [**Dedupp_0.3.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) (o encuéntralo en la carpeta `dist/` del repositorio).
+---
+
+### 🍏 Cómo instalar en macOS:
+1. Descarga [**Dedupp_0.3.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) (también disponible en la carpeta `dist/` del repositorio).
 2. Abre el archivo `.dmg` con doble clic.
-3. Arrastra **Dedupp** a tu carpeta de **Aplicaciones**.
-4. ¡Listo! Ya puedes abrir Dedupp desde Spotlight (`Cmd + Espacio`), Launchpad o tu Dock.
+3. Arrastra el icono de **Dedupp** a tu carpeta de **Aplicaciones**.
+4. ¡Listo! Ábrelo desde Spotlight (`Cmd + Espacio`), Launchpad o el Dock.
+
+### 🪟 Cómo instalar en Windows:
+1. Descarga el instalador ejecutable **`Dedupp_x64-setup.exe`** (NSIS) o el paquete **`Dedupp_x64.msi`** desde la sección de [Releases](https://github.com/dromangdev/dedupp/releases) o los artefactos del workflow de GitHub Actions.
+2. Haz doble clic en el instalador y sigue el asistente paso a paso.
+3. No requiere permisos de administrador (`installMode: currentUser`).
+4. Abre **Dedupp** desde el Menú Inicio o el acceso directo de tu Escritorio.
+> 💡 *Para más detalles específicos de Windows, consulta la [Guía de Windows](docs/WINDOWS.md).*
+
+### 🐧 Cómo instalar en Linux:
+- **Formato universal AppImage (Recomendado para cualquier distribución)**:
+  1. Descarga **`Dedupp_amd64.AppImage`**.
+  2. Dale permisos de ejecución y ejecútalo:
+     ```bash
+     chmod +x Dedupp_amd64.AppImage
+     ./Dedupp_amd64.AppImage
+     ```
+- **Paquete Debian / Ubuntu / Mint (`.deb`)**:
+  1. Descarga **`dedupp_amd64.deb`**.
+  2. Instálalo desde la terminal:
+     ```bash
+     sudo dpkg -i dedupp_amd64.deb || sudo apt-get install -f
+     ```
+> 💡 *Para requisitos del sistema y permisos en distribuciones como Fedora, Arch o openSUSE, consulta la [Guía de Linux](docs/LINUX.md).*
 
 ---
 
@@ -80,11 +107,22 @@ Dedupp/
 
 ## 🚀 Puesta en Marcha y Compilación
 
-### Requisitos Previos
+### Requisitos del Sistema por Plataforma
 
-- [Rust](https://rustup.rs/) (versión 1.90 o superior recomendada)
-- macOS o Windows
-- Bibliotecas del sistema para Tauri (en macOS no se requiere instalación adicional)
+- **Todas las plataformas**: [Rust](https://rustup.rs/) (versión 1.90 o superior) y [Node.js](https://nodejs.org/) (v20+ recomendada).
+- 🍏 **macOS**: Xcode Command Line Tools (`xcode-select --install`).
+- 🪟 **Windows**: Visual Studio C++ Build Tools y WebView2 Runtime (instalado por defecto en Windows 10/11).
+- 🐧 **Linux**: Dependencias de WebKitGTK y librerías de escritorio:
+  ```bash
+  # Debian / Ubuntu / Linux Mint
+  sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+  # Fedora
+  sudo dnf install -y webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel
+  # Arch Linux
+  sudo pacman -S webkit2gtk-4.1 libappindicator-gtk3 librsvg
+  ```
+
+---
 
 ### 1. Iniciar la Interfaz Gráfica (Desktop GUI)
 
@@ -92,48 +130,63 @@ Para ejecutar la aplicación de escritorio en modo desarrollo:
 
 ```bash
 cd Dedupp
+# En macOS / Linux:
 ./run-gui.sh
+# O mediante el CLI de Tauri en cualquier sistema:
+cd gui && npx @tauri-apps/cli dev
 ```
 
-O compilando directamente con Cargo:
+Para generar un paquete binario de producción según tu sistema operativo:
 
 ```bash
-cargo run -p app
+cd gui && npx @tauri-apps/cli build
 ```
-
-Para generar un paquete de producción (.dmg / instalador):
-
-```bash
-cargo tauri build
-```
+- En macOS generará: `target/release/bundle/dmg/*.dmg` y `.app`
+- En Windows generará: `target/release/bundle/nsis/*.exe` y `msi/*.msi`
+- En Linux generará: `target/release/bundle/deb/*.deb` y `appimage/*.AppImage`
 
 ---
 
 ### 2. Uso de la Interfaz de Línea de Comandos (CLI)
 
-#### Modo Simulación (por defecto, solo lectura y previsualización):
+La herramienta de terminal (`dedupp`) funciona exactamente igual en macOS, Windows y Linux adaptándose a la sintaxis de rutas de cada sistema:
+
+#### Modo Simulación (por defecto, seguro y solo lectura):
 ```bash
-cargo run -p dedupp-cli -- /Volumes/MI_USB_DJ
-```
-O usando el script directo:
-```bash
-./run-cli.sh /Volumes/MI_USB_DJ
+# macOS:
+dedupp /Volumes/MI_USB_DJ
+
+# Windows:
+dedupp D:\
+# o en subcarpeta:
+dedupp "D:\Mi Musica"
+
+# Linux:
+dedupp /media/$USER/MI_USB_DJ
 ```
 
 #### Seleccionar criterio de versión más reciente:
 ```bash
-cargo run -p dedupp-cli -- /Volumes/MI_USB_DJ --criterion latest
+dedupp /Volumes/MI_USB_DJ --criterion latest
 ```
 
 #### Exportar un informe detallado a CSV:
 ```bash
-cargo run -p dedupp-cli -- /Volumes/MI_USB_DJ --export-csv informe_duplicados.csv
+dedupp /Volumes/MI_USB_DJ --export-csv informe_duplicados.csv
 ```
 
-#### Ejecutar la limpieza real (mover a cuarentena segura):
+#### Ejecutar la limpieza real (mover a cuarentena reversible o papelera):
 ```bash
-cargo run -p dedupp-cli -- /Volumes/MI_USB_DJ --apply
+dedupp /Volumes/MI_USB_DJ --apply
 ```
+
+---
+
+## 📚 Guías Detalladas por Plataforma
+
+- 🍏 [Guía de Uso en macOS](README.md)
+- 🪟 [Guía Completa para Windows](docs/WINDOWS.md)
+- 🐧 [Guía Completa para Linux](docs/LINUX.md)
 
 ---
 
