@@ -58,12 +58,24 @@ pub fn is_engine_dj_running() -> bool {
     }
     #[cfg(target_os = "windows")]
     {
-        if let Ok(output) = std::process::Command::new("tasklist")
-            .args(["/FI", "IMAGENAME eq Engine DJ.exe"])
+        use std::os::windows::process::CommandExt;
+        let mut cmd = std::process::Command::new("tasklist");
+        cmd.args(["/NH", "/FO", "CSV"]);
+        cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+        if let Ok(output) = cmd.output() {
+            let out_str = String::from_utf8_lossy(&output.stdout).to_lowercase();
+            if out_str.contains("engine dj.exe") || out_str.contains("enginedj.exe") || out_str.contains("engine.exe") {
+                return true;
+            }
+        }
+    }
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(output) = std::process::Command::new("pgrep")
+            .args(["-i", "-f", "engine"])
             .output()
         {
-            let out_str = String::from_utf8_lossy(&output.stdout);
-            if out_str.contains("Engine DJ.exe") {
+            if output.status.success() && !output.stdout.is_empty() {
                 return true;
             }
         }
