@@ -6,17 +6,28 @@ on:
       - main
       - develop
       - 'feature/**'
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
       - develop
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Target GitHub Release tag to attach installers'
+        required: false
+        default: 'v0.3.0'
+
+permissions:
+  contents: write
 
 jobs:
   test:
     name: Unit Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
@@ -27,7 +38,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libfuse2 || sudo apt-get install -y libfuse2t64
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -43,6 +54,7 @@ jobs:
     needs: test
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
@@ -58,7 +70,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libfuse2 || sudo apt-get install -y libfuse2t64
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -98,3 +110,20 @@ jobs:
           path: |
             target/release/bundle/deb/*.deb
             target/release/bundle/appimage/*.AppImage
+            target/release/bundle/AppImage/*.AppImage
+
+      - name: Publish to GitHub Release
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || 'v0.3.0' }}
+          files: |
+            target/release/bundle/dmg/*.dmg
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/msi/*.msi
+            target/release/bundle/deb/*.deb
+            target/release/bundle/appimage/*.AppImage
+            target/release/bundle/AppImage/*.AppImage
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

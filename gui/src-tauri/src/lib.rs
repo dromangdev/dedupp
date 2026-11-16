@@ -12,6 +12,8 @@ use dj_libraries::rekordbox::{
 use dj_libraries::DetectedLibraries;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+#[allow(unused_imports)]
+use std::path::PathBuf;
 use tauri::Emitter;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -463,7 +465,7 @@ fn open_system_trash() -> Result<(), String> {
 }
 
 #[tauri::command]
-fn play_system_sound(sound_name: String) -> Result<(), String> {
+fn play_system_sound(#[allow(unused_variables)] sound_name: String) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         let sound_path = match sound_name.as_str() {
