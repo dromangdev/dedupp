@@ -6,12 +6,12 @@ Esta guía describe el funcionamiento, instalación, dependencias y particularid
 
 ## 📥 1. Instalación y Formatos Disponibles
 
-Los paquetes para Linux se compilan de forma reproducible mediante el flujo de integración continua en cada release:
+Los paquetes oficiales para Linux están disponibles directamente para descargar:
 
 ### Opción A: Paquete Universal AppImage (Recomendado)
 Funciona en prácticamente cualquier distribución Linux moderna sin necesidad de instalación formal:
 
-1. Descarga el archivo **`Dedupp_0.3.0_amd64.AppImage`**.
+1. Descarga el archivo [📦 **`Dedupp_0.3.0_amd64.AppImage`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.AppImage).
 2. Otorga permisos de ejecución:
    ```bash
    chmod +x Dedupp_0.3.0_amd64.AppImage
@@ -35,10 +35,10 @@ Funciona en prácticamente cualquier distribución Linux moderna sin necesidad d
 ### Opción B: Paquete Debian / Ubuntu (`.deb`)
 Para sistemas basados en Debian, Ubuntu, Linux Mint o Pop!_OS:
 
-1. Descarga **`dedupp_0.3.0_amd64.deb`**.
+1. Descarga [📦 **`Dedupp_0.3.0_amd64.deb`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.deb).
 2. Instálalo con tu gestor de paquetes favorito o por terminal:
    ```bash
-   sudo dpkg -i dedupp_0.3.0_amd64.deb || sudo apt-get install -f
+   sudo dpkg -i Dedupp_0.3.0_amd64.deb || sudo apt-get install -f
    ```
 3. Dedupp aparecerá en tu lanzador de aplicaciones de GNOME, KDE o XFCE.
 

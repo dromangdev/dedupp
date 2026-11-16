@@ -7,13 +7,13 @@ Esta guía describe el funcionamiento, instalación y particularidades de **Dedu
 ## 📥 1. Instalación y Descarga
 
 ### Descarga del instalador listo para usar
-No requieres instalar compiladores ni herramientas técnicas. Los instaladores se generan automáticamente en cada release:
+No requieres instalar compiladores ni herramientas técnicas. Los instaladores oficiales están disponibles directamente para descargar:
 
-- **Instalador NSIS recomendado (`.exe`)**: `Dedupp_0.3.0_x64-setup.exe`
+- **Instalador NSIS recomendado (`.exe`)**: [📦 **`Dedupp_0.3.0_x64-setup.exe`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_x64-setup.exe)
   - Se instala en el perfil del usuario actual (`%LOCALAPPDATA%\Programs\Dedupp`).
   - **No requiere permisos de administrador**.
   - Crea accesos directos en el Menú Inicio y en el Escritorio.
-- **Paquete MSI para empresas / administradores (`.msi`)**: `Dedupp_0.3.0_x64.msi`
+- **Paquete MSI para empresas / administradores (`.msi`)**: [📦 **`Dedupp_0.3.0_x64_en-US.msi`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_x64_en-US.msi)
   - Permite despliegue automatizado en entornos corporativos o mediante directivas de grupo.
 
 ### Requisitos del Sistema

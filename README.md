@@ -12,20 +12,22 @@ No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar los i
 
 | Plataforma | Arquitectura | Paquete / Instalador | Estado |
 | :--- | :--- | :--- | :--- |
-| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Descargar Dedupp v0.3.0 (.dmg)**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) | ✅ Estable |
-| 🪟 **Windows** (Windows 10 / 11 de 64 bits) | `x64` | [📦 **Descargar Instalador (.exe)**](https://github.com/dromangdev/dedupp/releases) / [📦 **MSI (.msi)**](https://github.com/dromangdev/dedupp/releases) | 🚀 Generado en CI / Releases |
-| 🐧 **Linux** (Ubuntu, Debian, Fedora, Arch) | `x64` | [📦 **Descargar .AppImage**](https://github.com/dromangdev/dedupp/releases) / [📦 **Paquete .deb**](https://github.com/dromangdev/dedupp/releases) | 🚀 Generado en CI / Releases |
+| 🍏 **macOS** (Apple Silicon M1 / M2 / M3 / M4) | `aarch64` | [📦 **Dedupp_0.3.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_aarch64.dmg) | ✅ Estable |
+| 🪟 **Windows** (Windows 10 / 11 de 64 bits) | `x64` | [📦 **Dedupp_0.3.0_x64-setup.exe**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_x64-setup.exe) / [📦 **MSI (.msi)**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_x64_en-US.msi) | ✅ Estable |
+| 🐧 **Linux** (Universal para cualquier distribución) | `x64` | [📦 **Dedupp_0.3.0_amd64.AppImage**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.AppImage) | ✅ Estable |
+| 🐧 **Linux** (Debian, Ubuntu, Mint) | `x64` | [📦 **Dedupp_0.3.0_amd64.deb**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.deb) | ✅ Estable |
+| ⚡ **macOS CLI** (Binario standalone de terminal) | `aarch64` | [📦 **dedupp_0.3.0_macos_aarch64.tar.gz**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/dedupp_0.3.0_macos_aarch64.tar.gz) | ✅ Estable |
 
 ---
 
 ### 🍏 Cómo instalar en macOS:
-1. Descarga [**Dedupp_0.3.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/raw/main/dist/Dedupp_0.3.0_aarch64.dmg) (también disponible en la carpeta `dist/` del repositorio).
+1. Descarga [**Dedupp_0.3.0_aarch64.dmg**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_aarch64.dmg).
 2. Abre el archivo `.dmg` con doble clic.
 3. Arrastra el icono de **Dedupp** a tu carpeta de **Aplicaciones**.
 4. ¡Listo! Ábrelo desde Spotlight (`Cmd + Espacio`), Launchpad o el Dock.
 
 ### 🪟 Cómo instalar en Windows:
-1. Descarga el instalador ejecutable **`Dedupp_x64-setup.exe`** (NSIS) o el paquete **`Dedupp_x64.msi`** desde la sección de [Releases](https://github.com/dromangdev/dedupp/releases) o los artefactos del workflow de GitHub Actions.
+1. Descarga el instalador ejecutable [**`Dedupp_0.3.0_x64-setup.exe`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_x64-setup.exe) (NSIS recomendado) o el paquete [**`Dedupp_0.3.0_x64_en-US.msi`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_x64_en-US.msi).
 2. Haz doble clic en el instalador y sigue el asistente paso a paso.
 3. No requiere permisos de administrador (`installMode: currentUser`).
 4. Abre **Dedupp** desde el Menú Inicio o el acceso directo de tu Escritorio.
@@ -33,17 +35,17 @@ No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar los i
 
 ### 🐧 Cómo instalar en Linux:
 - **Formato universal AppImage (Recomendado para cualquier distribución)**:
-  1. Descarga **`Dedupp_amd64.AppImage`**.
+  1. Descarga [**`Dedupp_0.3.0_amd64.AppImage`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.AppImage).
   2. Dale permisos de ejecución y ejecútalo:
      ```bash
-     chmod +x Dedupp_amd64.AppImage
-     ./Dedupp_amd64.AppImage
+     chmod +x Dedupp_0.3.0_amd64.AppImage
+     ./Dedupp_0.3.0_amd64.AppImage
      ```
 - **Paquete Debian / Ubuntu / Mint (`.deb`)**:
-  1. Descarga **`dedupp_amd64.deb`**.
+  1. Descarga [**`Dedupp_0.3.0_amd64.deb`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.deb).
   2. Instálalo desde la terminal:
      ```bash
-     sudo dpkg -i dedupp_amd64.deb || sudo apt-get install -f
+     sudo dpkg -i Dedupp_0.3.0_amd64.deb || sudo apt-get install -f
      ```
 > 💡 *Para requisitos del sistema y permisos en distribuciones como Fedora, Arch o openSUSE, consulta la [Guía de Linux](docs/LINUX.md).*
 
