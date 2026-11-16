@@ -16,5 +16,7 @@ thiserror.workspace = true
 log.workspace = true
 lofty.workspace = true
 trash.workspace = true
-libc = { workspace = true }
 dj-libraries = { path = "../dj-libraries" }
+
+[target.'cfg(unix)'.dependencies]
+libc = { workspace = true }

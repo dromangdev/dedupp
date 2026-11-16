@@ -663,11 +663,12 @@ mod tests {
 
     #[test]
     fn test_relink_and_purge_pdb_fixture() {
-        let fixture_path = concat!(
-            env!("HOME"),
-            "/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rekordbox-pdb-0.1.0/tests/data/bigger-export.pdb"
+        let home = std::env::var("HOME").or_else(|_| std::env::var("USERPROFILE")).unwrap_or_default();
+        let fixture_path = format!(
+            "{}/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rekordbox-pdb-0.1.0/tests/data/bigger-export.pdb",
+            home
         );
-        if !Path::new(fixture_path).exists() {
+        if !Path::new(&fixture_path).exists() {
             println!("Fixture not found at {}, skipping", fixture_path);
             return;
         }
@@ -676,7 +677,7 @@ mod tests {
         let temp_dir = std::env::temp_dir().join("dedupp_pdb_test");
         let _ = std::fs::create_dir_all(&temp_dir);
         let test_pdb = temp_dir.join("export.pdb");
-        std::fs::copy(fixture_path, &test_pdb).unwrap();
+        std::fs::copy(&fixture_path, &test_pdb).unwrap();
 
         let mut db_mgr = RekordboxPdbDatabase::new(&test_pdb, &temp_dir);
 
