@@ -87,7 +87,7 @@ fn list_available_drives() -> Vec<DriveItem> {
         }
     }
 
-    // 2. Detectar unidades en Windows (C:\, D:\, etc.)
+    // 2. Detectar unidades en Windows (A:\ a Z:\)
     #[cfg(target_os = "windows")]
     {
         for letter in b'A'..=b'Z' {
@@ -127,6 +127,74 @@ fn list_available_drives() -> Vec<DriveItem> {
                 });
             }
         }
+    }
+
+    // 3. Detectar unidades montadas en Linux (/media, /run/media, /mnt)
+    #[cfg(target_os = "linux")]
+    {
+        let mut scan_dirs = Vec::new();
+        if let Ok(user) = std::env::var("USER") {
+            scan_dirs.push(PathBuf::from(format!("/media/{}", user)));
+            scan_dirs.push(PathBuf::from(format!("/run/media/{}", user)));
+        }
+        scan_dirs.push(PathBuf::from("/media"));
+        scan_dirs.push(PathBuf::from("/mnt"));
+
+        let mut seen_paths = std::collections::HashSet::new();
+
+        for mount_root in scan_dirs {
+            if let Ok(entries) = std::fs::read_dir(&mount_root) {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if p.is_dir() && !seen_paths.contains(&p) {
+                        let name = p.file_name().unwrap_or_default().to_string_lossy().to_string();
+                        if name.starts_with('.') || name == "cdrom" {
+                            continue;
+                        }
+
+                        seen_paths.insert(p.clone());
+                        let disk_space = DiskSpaceInfo::from_path(&p);
+                        let has_dj = p.join("Engine Library").exists()
+                            || p.join("PIONEER").exists()
+                            || p.join("_Serato_").exists();
+
+                        let label = if has_dj {
+                            if let Some(ref ds) = disk_space {
+                                format!("🎧 Unidad DJ: {} [{} libres de {}]", name, ds.free_formatted, ds.total_formatted)
+                            } else {
+                                format!("🎧 Unidad DJ: {}", name)
+                            }
+                        } else if let Some(ref ds) = disk_space {
+                            format!("💾 USB / Disco: {} [{} libres de {}]", name, ds.free_formatted, ds.total_formatted)
+                        } else {
+                            format!("💾 USB / Disco: {}", name)
+                        };
+
+                        drives.push(DriveItem {
+                            label,
+                            path: p.to_string_lossy().to_string(),
+                            is_usb: true,
+                            disk_space,
+                        });
+                    }
+                }
+            }
+        }
+
+        // Agregar también el disco raíz del sistema "/"
+        let root_p = Path::new("/");
+        let root_space = DiskSpaceInfo::from_path(root_p);
+        let root_label = if let Some(ref ds) = root_space {
+            format!("🖥️ Sistema Raíz (/) [{} libres de {}]", ds.free_formatted, ds.total_formatted)
+        } else {
+            "🖥️ Sistema Raíz (/)".to_string()
+        };
+        drives.push(DriveItem {
+            label: root_label,
+            path: "/".to_string(),
+            is_usb: false,
+            disk_space: root_space,
+        });
     }
 
     // 3. Carpeta de Música del usuario (~/Music)
@@ -375,6 +443,22 @@ fn open_system_trash() -> Result<(), String> {
             .spawn()
             .map_err(|e| e.to_string())?;
     }
+    #[cfg(target_os = "linux")]
+    {
+        let opened = std::process::Command::new("xdg-open")
+            .arg("trash:///")
+            .spawn()
+            .is_ok();
+
+        if !opened {
+            if let Ok(home) = std::env::var("HOME") {
+                let trash_path = format!("{}/.local/share/Trash/files", home);
+                let _ = std::process::Command::new("xdg-open")
+                    .arg(&trash_path)
+                    .spawn();
+            }
+        }
+    }
     Ok(())
 }
 
@@ -409,6 +493,16 @@ fn play_system_sound(sound_name: String) -> Result<(), String> {
             MessageBeep(0);
         }
         return Ok(());
+    }
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(child) = std::process::Command::new("canberra-gtk-play")
+            .args(["-i", "trash-empty"])
+            .spawn()
+        {
+            let _ = child;
+            return Ok(());
+        }
     }
     Ok(())
 }

@@ -83,6 +83,17 @@ pub fn is_rekordbox_running() -> bool {
             }
         }
     }
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(output) = std::process::Command::new("pgrep")
+            .args(["-i", "-f", "rekordbox"])
+            .output()
+        {
+            if output.status.success() && !output.stdout.is_empty() {
+                return true;
+            }
+        }
+    }
     false
 }
 

@@ -2432,11 +2432,14 @@ async function initApp() {
   initWindowDragging();
 }
 
-// Soporte de arrastre de ventana nativo y detección de plataforma (macOS / Windows)
+// Soporte de arrastre de ventana nativo y detección de plataforma (macOS / Windows / Linux)
 function initWindowDragging() {
   const isWindows = navigator.userAgent.includes("Windows") || (navigator.platform && navigator.platform.includes("Win"));
+  const isLinux = navigator.userAgent.includes("Linux") && !navigator.userAgent.includes("Android");
   if (isWindows) {
     document.body.classList.add("platform-windows");
+  } else if (isLinux) {
+    document.body.classList.add("platform-linux");
   } else {
     document.body.classList.add("platform-mac");
   }
