@@ -90,17 +90,27 @@ fn list_available_drives() -> Vec<DriveItem> {
     // 2. Detectar unidades en Windows (C:\, D:\, etc.)
     #[cfg(target_os = "windows")]
     {
-        for letter in b'C'..=b'Z' {
+        for letter in b'A'..=b'Z' {
             let root_str = format!("{}:\\", letter as char);
             let p = Path::new(&root_str);
             if p.exists() {
                 let is_c = letter == b'C';
                 let disk_space = DiskSpaceInfo::from_path(p);
+                let has_dj = p.join("Engine Library").exists()
+                    || p.join("PIONEER").exists()
+                    || p.join("_Serato_").exists();
+
                 let label = if is_c {
                     if let Some(ref ds) = disk_space {
                         format!("🖥️ Disco Principal ({}) [{} libres de {}]", root_str, ds.free_formatted, ds.total_formatted)
                     } else {
                         format!("🖥️ Disco Principal ({})", root_str)
+                    }
+                } else if has_dj {
+                    if let Some(ref ds) = disk_space {
+                        format!("🎧 Unidad DJ ({}) [{} libres de {}]", root_str, ds.free_formatted, ds.total_formatted)
+                    } else {
+                        format!("🎧 Unidad DJ ({})", root_str)
                     }
                 } else {
                     if let Some(ref ds) = disk_space {
@@ -191,8 +201,23 @@ fn browse_folder(base_path: Option<String>) -> Result<Option<String>, String> {
     let picked = dialog.pick_folder();
 
     if let (Some(picked_path), Some(base_p)) = (&picked, base) {
-        if !picked_path.starts_with(base_p) {
-            let unit_name = base_p.file_name().unwrap_or_default().to_string_lossy();
+        #[cfg(target_os = "windows")]
+        let is_subpath = {
+            let p1 = picked_path.to_string_lossy().to_lowercase().replace('/', "\\");
+            let mut p2 = base_p.to_string_lossy().to_lowercase().replace('/', "\\");
+            if !p2.ends_with('\\') {
+                p2.push('\\');
+            }
+            p1.starts_with(&p2) || p1 == p2.trim_end_matches('\\')
+        };
+        #[cfg(not(target_os = "windows"))]
+        let is_subpath = picked_path.starts_with(base_p);
+
+        if !is_subpath {
+            let unit_name = base_p
+                .file_name()
+                .map(|s| s.to_string_lossy())
+                .unwrap_or_else(|| base_p.to_string_lossy());
             return Err(format!(
                 "Has seleccionado una carpeta fuera de la unidad '{}'. Por favor selecciona una carpeta dentro de {}.",
                 unit_name,
@@ -377,12 +402,13 @@ fn play_system_sound(sound_name: String) -> Result<(), String> {
     }
     #[cfg(target_os = "windows")]
     {
-        if sound_name == "trash" || sound_name == "pop" {
-            let _ = std::process::Command::new("powershell")
-                .arg("-c")
-                .arg("[System.Media.SystemSounds]::Asterisk.Play()")
-                .spawn();
+        extern "system" {
+            fn MessageBeep(uType: u32) -> i32;
         }
+        unsafe {
+            MessageBeep(0);
+        }
+        return Ok(());
     }
     Ok(())
 }
