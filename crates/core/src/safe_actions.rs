@@ -9,6 +9,7 @@ use thiserror::Error;
 use trash::macos::{DeleteMethod, TrashContextExtMacos};
 
 pub fn send_to_trash<P: AsRef<Path>>(path: P) -> Result<(), ActionError> {
+    #[allow(unused_mut)]
     let mut ctx = trash::TrashContext::default();
     #[cfg(target_os = "macos")]
     ctx.set_delete_method(DeleteMethod::NsFileManager);

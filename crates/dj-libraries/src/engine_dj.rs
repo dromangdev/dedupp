@@ -72,7 +72,7 @@ pub fn is_engine_dj_running() -> bool {
     #[cfg(target_os = "linux")]
     {
         if let Ok(output) = std::process::Command::new("pgrep")
-            .args(["-i", "-f", "engine"])
+            .args(["-i", "-f", "engine[-_ ]?dj"])
             .output()
         {
             if output.status.success() && !output.stdout.is_empty() {

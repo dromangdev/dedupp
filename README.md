@@ -16,6 +16,7 @@ No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar los i
 | 🪟 **Windows** (Windows 10 / 11 de 64 bits) | `x64` | [📦 **Dedupp_0.3.0_x64-setup.exe**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_x64-setup.exe) / [📦 **MSI (.msi)**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_x64_en-US.msi) | ✅ Estable |
 | 🐧 **Linux** (Universal para cualquier distribución) | `x64` | [📦 **Dedupp_0.3.0_amd64.AppImage**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.AppImage) | ✅ Estable |
 | 🐧 **Linux** (Debian, Ubuntu, Mint) | `x64` | [📦 **Dedupp_0.3.0_amd64.deb**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.deb) | ✅ Estable |
+| ⚡ **Linux CLI** (Binario standalone de terminal) | `x64` | [📦 **dedupp_0.3.0_linux_amd64.tar.gz**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/dedupp_0.3.0_linux_amd64.tar.gz) | ✅ Estable |
 | ⚡ **macOS CLI** (Binario standalone de terminal) | `aarch64` | [📦 **dedupp_0.3.0_macos_aarch64.tar.gz**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/dedupp_0.3.0_macos_aarch64.tar.gz) | ✅ Estable |
 
 ---
@@ -34,7 +35,19 @@ No necesitas instalar Rust ni herramientas de desarrollo. Puedes descargar los i
 > 💡 *Para más detalles específicos de Windows, consulta la [Guía de Windows](docs/WINDOWS.md).*
 
 ### 🐧 Cómo instalar en Linux:
-- **Formato universal AppImage (Recomendado para cualquier distribución)**:
+- **Binario standalone de terminal CLI (Rápido, universal y sin dependencias gráficas)**:
+  1. Descarga [**`dedupp_0.3.0_linux_amd64.tar.gz`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/dedupp_0.3.0_linux_amd64.tar.gz).
+  2. Descomprímelo y ejecútalo directamente:
+     ```bash
+     tar -xzvf dedupp_0.3.0_linux_amd64.tar.gz
+     ./dedupp /media/$USER/MI_USB_DJ
+     ```
+  3. *(Opcional)* Instálalo en `/usr/local/bin` para tener el comando `dedupp` global:
+     ```bash
+     sudo install -m 755 dedupp /usr/local/bin/
+     ```
+
+- **Formato universal AppImage (Interfaz Gráfica)**:
   1. Descarga [**`Dedupp_0.3.0_amd64.AppImage`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/Dedupp_0.3.0_amd64.AppImage).
   2. Dale permisos de ejecución y ejecútalo:
      ```bash
@@ -117,11 +130,11 @@ Dedupp/
 - 🐧 **Linux**: Dependencias de WebKitGTK y librerías de escritorio:
   ```bash
   # Debian / Ubuntu / Linux Mint
-  sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+  sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libdbus-1-dev pkg-config
   # Fedora
-  sudo dnf install -y webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel
+  sudo dnf install -y webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel dbus-devel pkgconf-pkg-config
   # Arch Linux
-  sudo pacman -S webkit2gtk-4.1 libappindicator-gtk3 librsvg
+  sudo pacman -S webkit2gtk-4.1 libappindicator-gtk3 librsvg dbus pkgconf
   ```
 
 ---

@@ -115,22 +115,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
-name = "app"
-version = "0.3.0"
-dependencies = [
- "dedupp-core",
- "dj-libraries",
- "libc",
- "log",
- "rfd",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-log",
-]
-
-[[package]]
 name = "atk"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -715,6 +699,22 @@ dependencies = [
  "thiserror 2.0.21",
  "trash",
  "walkdir",
+]
+
+[[package]]
+name = "dedupp-gui"
+version = "0.3.0"
+dependencies = [
+ "dedupp-core",
+ "dj-libraries",
+ "libc",
+ "log",
+ "rfd",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-log",
 ]
 
 [[package]]
