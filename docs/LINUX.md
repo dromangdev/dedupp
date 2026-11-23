@@ -42,6 +42,20 @@ Para sistemas basados en Debian, Ubuntu, Linux Mint o Pop!_OS:
    ```
 3. Dedupp aparecerá en tu lanzador de aplicaciones de GNOME, KDE o XFCE.
 
+### Opción C: Binario standalone de terminal CLI (Recomendado para servidores o terminal)
+Binario ultraligero compilado en Rust nativo, sin dependencias de WebKit ni entorno gráfico:
+
+1. Descarga [📦 **`dedupp_0.3.0_linux_amd64.tar.gz`**](https://github.com/dromangdev/dedupp/releases/download/v0.3.0/dedupp_0.3.0_linux_amd64.tar.gz).
+2. Descomprime y ejecuta:
+   ```bash
+   tar -xzvf dedupp_0.3.0_linux_amd64.tar.gz
+   ./dedupp --help
+   ```
+3. *(Opcional)* Instalarlo en `/usr/local/bin`:
+   ```bash
+   sudo install -m 755 dedupp /usr/local/bin/
+   ```
+
 ---
 
 ## 🎛️ 2. Detección de Almacenamiento y Librerías DJ en Linux
@@ -110,11 +124,11 @@ Si deseas compilar Dedupp localmente en Linux:
 # En Debian / Ubuntu / Linux Mint:
 sudo apt-get update
 sudo apt-get install -y build-essential curl pkg-config libssl-dev \
-    libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+    libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libdbus-1-dev
 
 # En Fedora / RHEL:
 sudo dnf install -y gcc gcc-c++ make pkgconf-pkg-config openssl-devel \
-    webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel patchelf
+    webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel patchelf dbus-devel
 
 # En Arch Linux / Manjaro:
 sudo pacman -S base-devel pkgconf openssl webkit2gtk-4.1 libappindicator-gtk3 librsvg

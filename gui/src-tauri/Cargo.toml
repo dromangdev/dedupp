@@ -1,12 +1,11 @@
 [package]
-name = "app"
+name = "dedupp-gui"
 version = "0.3.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
-edition = "2024"
-rust-version = "1.90"
+description = "Dedupp Desktop GUI"
+authors = ["Dedupp Team"]
+license = "MIT"
+repository = "https://github.com/dromangdev/dedupp"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
